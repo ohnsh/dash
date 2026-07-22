@@ -7,16 +7,17 @@
     "start": "next start"
   },
   "dependencies": {
+    "@biomejs/biome": "^2.5.5",
     "next": "16.3.0-preview.8",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.5",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^26.1.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "hls.js": "^1.6.16",
     "tailwindcss": "^4",
     "typescript": "^7.0.2"
   },
