@@ -1,0 +1,7 @@
+{
+  "name": "dash",
+  "private": true,
+  "workspaces": [
+    "next"
+  ]
+}
