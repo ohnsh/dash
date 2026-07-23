@@ -1,15 +1,11 @@
 'use client'
 
-import type HlsType from 'hls.js'
+import Hls from 'hls.js'
 import { useEffect, useRef } from 'react'
-
-declare global {
-  var Hls: typeof HlsType
-}
 
 export default function ClientStream({ streamUrl }: { streamUrl: string }) {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const hlsRef = useRef<HlsType>(null)
+  const hlsRef = useRef<Hls>(null)
 
   useEffect(() => {
     // as an alternative, check out callback refs

@@ -37,6 +37,14 @@ export default function Home() {
           </strong>
         </li>
         <li>
+          <strong>
+            <Link className="text-accent underline" href="/hls?tech=client-npm">
+              hls.js client component using NPM package
+            </Link>
+          </strong>
+          <p>This is the sane way to do it in a Next project.</p>
+        </li>
+        <li>
           <p>
             <strong>
               <Link className="text-accent underline" href="/hls?tech=native">

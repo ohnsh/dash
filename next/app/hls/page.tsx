@@ -1,5 +1,6 @@
 import Script from 'next/script'
 import Client from './client'
+import ClientNpm from './client-npm'
 import Hlsjs from './hlsjs'
 import Native from './native'
 
@@ -32,6 +33,12 @@ export default async function Home({ searchParams }: PageProps<'/hls'>) {
     return (
       <main>
         <Client streamUrl={streamUrl} />
+      </main>
+    )
+  } else if (tech === 'client-npm') {
+    return (
+      <main>
+        <ClientNpm streamUrl={streamUrl} />
       </main>
     )
   } else {
