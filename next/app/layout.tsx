@@ -30,8 +30,13 @@ export default function RootLayout({
     >
       {/* No need to keep this here, but for the CDN experiment it's essential
       for it to be above the client-side navigation boundary. */}
-      <Script src="https://cdn.jsdelivr.net/npm/hls.js@latest" />
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Script
+          src="https://cdn.jsdelivr.net/npm/hls.js@latest"
+          strategy="beforeInteractive"
+        />
+      </body>
     </html>
   )
 }
