@@ -1,51 +1,50 @@
 'use client'
 
 import type HlsType from 'hls.js'
-import Script from 'next/script'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 declare global {
   var Hls: typeof HlsType
 }
 
 export default function ClientStream({ streamUrl }: { streamUrl: string }) {
-  const video = useRef<HTMLVideoElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const hlsRef = useRef<HlsType>(null)
+
+  useEffect(() => {
+    // as an alternative, check out callback refs
+    if (!videoRef.current) {
+      console.log('<video> not mounted. Bailing.')
+      return
+    }
+
+    if (!Hls.isSupported()) {
+      if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
+        // For Safari (native HLS support)
+        videoRef.current.src = streamUrl
+      }
+      return
+    }
+
+    if (!hlsRef.current) {
+      hlsRef.current = new Hls({
+        // MediaMTX low-latency options can be tuned here if needed
+        liveSyncDurationCount: 3,
+      })
+    }
+
+    hlsRef.current.loadSource(streamUrl)
+    hlsRef.current.attachMedia(videoRef.current)
+  }, [streamUrl])
 
   return (
-    <>
-      <Script
-        src="https://cdn.jsdelivr.net/npm/hls.js@latest"
-        strategy="afterInteractive"
-        onLoad={() => {
-          if (!video.current) {
-            console.log("Video wasn't ready. Bailing.")
-            return
-          }
-          if (Hls.isSupported()) {
-            // For Edge, Chrome, Firefox, etc.
-            const hls = new Hls({
-              // MediaMTX low-latency options can be tuned here if needed
-              liveSyncDurationCount: 3,
-            })
-            hls.loadSource(streamUrl)
-            hls.attachMedia(video.current)
-          } else if (
-            video.current.canPlayType('application/vnd.apple.mpegurl')
-          ) {
-            // For Safari (native HLS support)
-            video.current.src = streamUrl
-          }
-        }}
-      />
-      <video
-        ref={video}
-        // suppressHydrationWarning (not needed due to use of load event in script)
-        controls
-        autoPlay
-        muted
-        width="640"
-        height="360"
-      ></video>
-    </>
+    <video
+      ref={videoRef}
+      controls
+      autoPlay
+      muted
+      width="640"
+      height="360"
+    ></video>
   )
 }

@@ -17,8 +17,6 @@ export default async function ({ streamUrl }: Params) {
         height="360"
       ></video>
 
-      <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-
       {/* id required for inline scripts */}
       {/* lowercase <script> will work with `dangerouslySetInnerHTML` */}
       <Script id="vid-attach-inline" strategy="lazyOnload">

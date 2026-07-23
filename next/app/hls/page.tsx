@@ -1,3 +1,4 @@
+import Script from 'next/script'
 import Client from './client'
 import Hlsjs from './hlsjs'
 import Native from './native'
