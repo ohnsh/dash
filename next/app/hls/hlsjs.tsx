@@ -1,13 +1,12 @@
 import Script from 'next/script'
-import ClientStream from './client'
 
-// A silly experiment, out of curiosity. It works.
+interface Params {
+  streamUrl: string
+}
 
-const streamUrl = 'https://hls.ohn.sh/wuuk/index.m3u8'
-
-export default async function ScriptTest() {
+export default async function ({ streamUrl }: Params) {
   return (
-    <main>
+    <div>
       <video
         id="video"
         // suppressHydrationWarning
@@ -22,12 +21,13 @@ export default async function ScriptTest() {
 
       {/* id required for inline scripts */}
       {/* lowercase <script> will work with `dangerouslySetInnerHTML` */}
-      <Script id="vid-attach-inline" strategy="afterInteractive">
+      <Script id="vid-attach-inline" strategy="lazyOnload">
         {`const video = document.getElementById('video')
         const streamUrl = '${streamUrl}'
 
         if (Hls.isSupported()) {
           // For Edge, Chrome, Firefox, etc.
+          console.log('Using hls.js!')
           const hls = new Hls({
             // MediaMTX low-latency options can be tuned here if needed
             liveSyncDurationCount: 3,
@@ -35,12 +35,11 @@ export default async function ScriptTest() {
           hls.loadSource(streamUrl);
           hls.attachMedia(video);
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          console.log('Dropping hls.js! Using native Safari HLS support.')
           // For Safari (native HLS support)
           video.src = streamUrl;
         }`}
       </Script>
-
-      <ClientStream streamUrl={streamUrl} />
-    </main>
+    </div>
   )
 }
