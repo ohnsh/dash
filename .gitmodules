@@ -1,0 +1,3 @@
+[submodule "ptz-websocket"]
+	path = ptz-websocket
+	url = https://github.com/ohnsh/ptz-websocket
