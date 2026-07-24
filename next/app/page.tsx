@@ -1,9 +1,10 @@
 import Link from 'next/link'
+import Content from './main.mdx'
 
 export default function Home() {
   return (
     <main>
-      <Link href="/hls/experiment">HLS experiment</Link>
+      <Content />
     </main>
   )
 }

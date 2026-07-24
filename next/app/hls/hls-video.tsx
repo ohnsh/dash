@@ -28,7 +28,12 @@ export default function ClientStream({ streamUrl }: { streamUrl: string }) {
       hlsRef.current = new Hls({
         // MediaMTX low-latency options can be tuned here if needed
         liveSyncDurationCount: 3,
+        // crucial for mobile safari to work:
+        xhrSetup(xhr, _url) {
+          xhr.withCredentials = true
+        },
       })
+
       hlsRef.current.on(Hls.Events.ERROR, (event, data) => {
         console.log('Error event:', event)
         console.log('Error data:', data)

@@ -12,6 +12,10 @@
 
     a {
       text-decoration: none;
+
+      &[aria-current='page'] {
+        text-decoration: underline;
+      }
     }
   }
 }

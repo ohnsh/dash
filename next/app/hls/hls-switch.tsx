@@ -26,7 +26,12 @@ export default function HlsSwitch({
       <ul>
         {streams.map((s) => (
           <li key={s}>
-            <Link href={`/hls?stream=${s}`}>{s}</Link>
+            <Link
+              href={`/hls?stream=${s}`}
+              aria-current={s === stream ? 'page' : undefined}
+            >
+              {s}
+            </Link>
           </li>
         ))}
       </ul>
