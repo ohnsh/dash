@@ -15,7 +15,9 @@ export default function ClientStream({ streamUrl }: { streamUrl: string }) {
     }
 
     if (!Hls.isSupported()) {
+      console.warn('hls.js not supported by browser.')
       if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
+        console.warn('Using native HLS support.')
         // For Safari (native HLS support)
         videoRef.current.src = streamUrl
       }
@@ -26,6 +28,10 @@ export default function ClientStream({ streamUrl }: { streamUrl: string }) {
       hlsRef.current = new Hls({
         // MediaMTX low-latency options can be tuned here if needed
         liveSyncDurationCount: 3,
+      })
+      hlsRef.current.on(Hls.Events.ERROR, (event, data) => {
+        console.log('Error event:', event)
+        console.log('Error data:', data)
       })
     }
 

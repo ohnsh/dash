@@ -1,0 +1,17 @@
+.container {
+  max-width: 640px;
+
+  ul {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  li {
+    font-weight: bold;
+
+    a {
+      text-decoration: none;
+    }
+  }
+}
