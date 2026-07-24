@@ -55,8 +55,8 @@ export default function ClientStream({ streamUrl }: { streamUrl: string }) {
       controls
       autoPlay
       muted
-      width="640"
-      height="360"
+      // width="640"
+      // height="360"
     ></video>
   )
 }

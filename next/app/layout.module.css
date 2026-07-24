@@ -5,7 +5,8 @@
   padding: .5rem 1rem;
 
   header h1 {
-    font-size: var(--text-2xl);
+    font-size: var(--text-3xl);
+    font-weight: bold;
 
     a {
       color: inherit;
@@ -17,5 +18,29 @@
     /* body was formerly a flex container */
     /* align-self: center; */
     margin-block: 1rem;
+  }
+
+  footer ul {
+    padding-inline: 0;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    font-size: var(--text-sm);
+
+    li:not(:first-child)::before {
+      content: '/';
+      margin-inline: .8rem;
+    }
+
+    a {
+      text-decoration: none;
+    }
+  }
+
+  ul {
+    list-style: disc;
+    padding-inline: 1.5rem;
+    margin-inline: 0;
   }
 }

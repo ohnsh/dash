@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
 import css from './layout.module.css'
+import Footer from './footer.mdx'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -15,7 +16,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Dash',
+  title: '-dash',
   description: '',
 }
 
@@ -33,8 +34,10 @@ export default function RootLayout({
       for it to be above the client-side navigation boundary. */}
       <body className={`${css.body}`}>
         <header>
-          <h1 className="text-2xl font-bold">
-            <a href="/">Dash</a>
+          <h1>
+            <a href="/">
+              <code>-dash</code>
+            </a>
           </h1>
         </header>
         {children}
@@ -42,7 +45,9 @@ export default function RootLayout({
           src="https://cdn.jsdelivr.net/npm/hls.js@latest"
           strategy="beforeInteractive"
         />
-        <footer>j@ohn.sh</footer>
+        <footer>
+          <Footer />
+        </footer>
       </body>
     </html>
   )
