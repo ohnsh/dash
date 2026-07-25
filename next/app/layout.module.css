@@ -12,6 +12,19 @@
       color: inherit;
       text-decoration: none;
     }
+
+    code {
+      margin-inline: 1px;
+      text-underline-offset: .2rem;
+      text-decoration: underline;
+    }
+
+    &::after {
+      margin-inline: 1px;
+      text-underline-offset: .2rem;
+      text-decoration: underline;
+      content: '_';
+    }
   }
 
   main {

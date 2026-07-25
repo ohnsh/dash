@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: '-dash',
+  title: 'dash.ohn.sh',
   description: '',
 }
 
@@ -36,7 +36,10 @@ export default function RootLayout({
         <header>
           <h1>
             <a href="/">
-              <code>-dash</code>
+              <code>d</code>
+              <code>a</code>
+              <code>s</code>
+              <code>h</code>
             </a>
           </h1>
         </header>
