@@ -2,6 +2,6 @@
   "name": "dash",
   "private": true,
   "workspaces": [
-    "next", "ptz-websocket", "dashd"
+    "next", "dashd"
   ]
 }

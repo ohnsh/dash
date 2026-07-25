@@ -1,7 +1,6 @@
 'use client'
 
-import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import type { ComponentPropsWithoutRef } from 'react'
 import css from './hls-switch.module.css'
 import HlsVideo from './hls-video'
@@ -26,12 +25,12 @@ export default function HlsSwitch({
       <ul>
         {streams.map((s) => (
           <li key={s}>
-            <Link
+            <a
               href={`/hls?stream=${s}`}
               aria-current={s === stream ? 'page' : undefined}
             >
               {s}
-            </Link>
+            </a>
           </li>
         ))}
       </ul>
