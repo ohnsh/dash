@@ -5,7 +5,11 @@ import type { ComponentPropsWithoutRef } from 'react'
 import css from './hls-switch.module.css'
 import HlsVideo from './hls-video'
 
-const streams = ['desk', 'wuuk', 'wuuk-patch', 'wyze1', 'wyze1-patch']
+const streams = [
+  { name: 'desk', path: 'desk' },
+  { name: 'wuuk', path: 'wuuk-patch' },
+  { name: 'wyze1', path: 'wyze1-patch' },
+]
 const cls = (...classes: Array<string | string[] | undefined>) =>
   classes.flat().filter(Boolean).join(' ')
 
@@ -23,13 +27,13 @@ export default function HlsSwitch({
   return (
     <div className={cls(className, css.container)} {...divProps}>
       <ul>
-        {streams.map((s) => (
-          <li key={s}>
+        {streams.map(({ name, path }) => (
+          <li key={name}>
             <a
-              href={`/hls?stream=${s}`}
-              aria-current={s === stream ? 'page' : undefined}
+              href={`/hls?stream=${path}`}
+              aria-current={path === stream ? 'page' : undefined}
             >
-              {s}
+              {name}
             </a>
           </li>
         ))}
