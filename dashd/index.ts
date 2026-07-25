@@ -1,4 +1,5 @@
 import Bun from 'bun'
+import withCors from './with-cors'
 
 const MMTX_API_URL = 'http://localhost:9997/v3'
 
@@ -8,7 +9,7 @@ const eventStreamMap = new Map<string, ReadableStreamDefaultController>()
 
 Bun.serve({
   routes: {
-    '/mx/diag': async (req, server) => {
+    '/mx/diag': withCors(async (req, server) => {
       //subscriberCount
       const { address, url, pendingRequests, pendingWebSockets } = server
       const resp = {
@@ -21,7 +22,7 @@ Bun.serve({
       const realSourceIP = req.headers.get('CF-Connecting-IP')
       const requestIP = server.requestIP(req)
       return Response.json({ ...resp, realSourceIP, requestIP, sseSubscribers })
-    },
+    }),
 
     '/mx/streams': () => fetch(`${MMTX_API_URL}/paths/list`),
 
@@ -44,7 +45,7 @@ Bun.serve({
       return Response.json({ hlssessions, webrtcsessions, rtspconns })
     },
 
-    '/mx/events': (req, server) => {
+    '/mx/events': withCors((req, server) => {
       server.timeout(req, 0)
       let uuid: string
 
@@ -67,7 +68,7 @@ Bun.serve({
           'Cache-Control': 'no-cache',
         },
       })
-    },
+    }),
 
     '/priv/hook': (req) => {
       const url = new URL(req.url)
