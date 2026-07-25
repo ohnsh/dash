@@ -4,8 +4,9 @@ const MMTX_API_URL = 'http://localhost:9997/v3'
 
 const eventStreamMap = new Map<string, ReadableStreamDefaultController>()
 
+// run with `bun --port=4100`, `BUN_PORT=4100`, `PORT=4100`, or `NODE_PORT=4100`
+
 Bun.serve({
-  hostname: '0.0.0.0',
   routes: {
     '/mx/diag': async (req, server) => {
       //subscriberCount
@@ -21,26 +22,28 @@ Bun.serve({
       const requestIP = server.requestIP(req)
       return Response.json({ ...resp, realSourceIP, requestIP, sseSubscribers })
     },
-    '/mx/streams': async (_req) => {
-      const resp = await fetch(`${MMTX_API_URL}/paths/list`)
-      return new Response(resp.body, resp)
-    },
-    '/mx/streams-alt': async (_req) => {
-      const resp = await fetch(`${MMTX_API_URL}/paths/list`)
-      const json = await resp.json()
 
-      return Response.json(json, resp)
-    },
-    '/mx/streams/:stream': async (req) => {
+    '/mx/streams': () => fetch(`${MMTX_API_URL}/paths/list`),
+
+    '/mx/streams/:stream': (req) => {
       const { stream } = req.params
       return fetch(`${MMTX_API_URL}/paths/get/${stream}`)
       // const resp = await fetch(`${MMTX_API_URL}/paths/get/${stream}`)
       // return new Response(resp.body, resp)
     },
-    '/mx/status': async (_req) => {
-      const resp = await fetch(`${MMTX_API_URL}/hlssessions/list`)
-      return new Response(resp.body, resp)
+
+    '/mx/status': async () => {
+      const fetchJson = (path: string) =>
+        fetch(`${MMTX_API_URL}/${path}/list`).then((r) => r.json())
+
+      const hlssessions = await fetchJson('hlssessions')
+      const webrtcsessions = await fetchJson('webrtcsessions')
+      const rtspconns = await fetchJson('rtspconns')
+      // const rtmpConnResp = await fetch(`${MMTX_API_URL}/rtmpconns/list`)
+
+      return Response.json({ hlssessions, webrtcsessions, rtspconns })
     },
+
     '/mx/events': (req, server) => {
       server.timeout(req, 0)
       let uuid: string
@@ -65,6 +68,7 @@ Bun.serve({
         },
       })
     },
+
     '/priv/hook': (req) => {
       const url = new URL(req.url)
       // const path = url.searchParams.get('path') // $MTX_PATH
@@ -75,7 +79,7 @@ Bun.serve({
       for (const sc of eventStreamMap.values()) {
         sc.enqueue(`event: mmtx-hook\ndata: ${url.search}\n\n`)
       }
-      return new Response('Ok.')
+      return new Response('thx.')
     },
   },
 })
