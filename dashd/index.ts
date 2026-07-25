@@ -65,14 +65,17 @@ Bun.serve({
         },
       })
     },
-    '/priv/hook': {
-      POST: async (req) => {
-        const data = await req.text()
-        for (const sc of eventStreamMap.values()) {
-          sc.enqueue(`event: mmtx-hook\ndata: ${data}\n\n`)
-        }
-        return new Response('Ok.')
-      },
+    '/priv/hook': (req) => {
+      const url = new URL(req.url)
+      // const path = url.searchParams.get('path') // $MTX_PATH
+      // const reader_type = url.searchParams.get('reader_type') // $MTX_READER_TYPE
+      // const reader_id = url.searchParams.get('reader_id') // $MTX_READER_ID
+
+      console.log(`/priv/hook called with ${url.search}`)
+      for (const sc of eventStreamMap.values()) {
+        sc.enqueue(`event: mmtx-hook\ndata: ${url.search}\n\n`)
+      }
+      return new Response('Ok.')
     },
   },
 })
