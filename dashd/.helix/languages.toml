@@ -1,0 +1,3 @@
+[language-server.biome]
+command = "bunx"
+args = ["biome", "lsp-proxy"]
