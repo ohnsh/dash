@@ -1,6 +1,7 @@
 import HlsStatStream from './hls-sse'
 import HlsStats from './hls-stats'
 import HlsSwitch from './hls-switch'
+import css from './page.module.css'
 
 export default async function (props: PageProps<'/hls'>) {
   let { stream = 'desk' } = await props.searchParams
@@ -9,10 +10,10 @@ export default async function (props: PageProps<'/hls'>) {
   }
 
   return (
-    <main>
+    <main className={css.container}>
       <HlsSwitch className="mx-auto" />
       <HlsStats stream={stream} />
-      <HlsStatStream stream={stream} />
+      <HlsStatStream />
     </main>
   )
 }
