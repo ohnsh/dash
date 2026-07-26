@@ -1,18 +1,18 @@
-import Bun from 'bun'
+import type { default as Bun, BunRequest, Server } from 'bun'
 
 const ALLOWED_ORIGINS = new Set([
   'http://localhost:3000',
   'https://dash.ohn.sh',
 ])
 
+type BunHandler<T> = (
+  req: BunRequest,
+  server: Server<T>,
+) => Response | Promise<Response>
+
 // 1. The CORS Middleware Utility
-export default function withCORS<T>(
-  handler: (
-    req: Request,
-    server: Bun.Server<T>,
-  ) => Promise<Response> | Response,
-) {
-  return async (req: Request, server: Bun.Server<T>) => {
+export default function withCORS<T>(handler: BunHandler<T>): BunHandler<T> {
+  return async (req, server) => {
     const origin = req.headers.get('origin')
     const isAllowed = origin && ALLOWED_ORIGINS.has(origin)
     const corsHeaders = {

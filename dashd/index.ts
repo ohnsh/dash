@@ -1,5 +1,5 @@
 import Bun from 'bun'
-import withCors from './with-cors'
+import withCORS from './with-cors'
 
 const MMTX_API_URL = 'http://localhost:9997/v3'
 
@@ -9,7 +9,7 @@ const eventStreamMap = new Map<string, ReadableStreamDefaultController>()
 
 Bun.serve({
   routes: {
-    '/mx/diag': withCors(async (req, server) => {
+    '/mx/diag': withCORS(async (req, server) => {
       //subscriberCount
       const { address, url, pendingRequests, pendingWebSockets } = server
       const resp = {
@@ -24,16 +24,16 @@ Bun.serve({
       return Response.json({ ...resp, realSourceIP, requestIP, sseSubscribers })
     }),
 
-    '/mx/streams': () => fetch(`${MMTX_API_URL}/paths/list`),
+    '/mx/streams': withCORS(() => fetch(`${MMTX_API_URL}/paths/list`)),
 
-    '/mx/streams/:stream': (req) => {
+    '/mx/streams/:stream': withCORS((req) => {
       const { stream } = req.params
       return fetch(`${MMTX_API_URL}/paths/get/${stream}`)
       // const resp = await fetch(`${MMTX_API_URL}/paths/get/${stream}`)
       // return new Response(resp.body, resp)
-    },
+    }),
 
-    '/mx/status': async () => {
+    '/mx/status': withCORS(async () => {
       const fetchJson = (path: string) =>
         fetch(`${MMTX_API_URL}/${path}/list`).then((r) => r.json())
 
@@ -43,9 +43,9 @@ Bun.serve({
       // const rtmpConnResp = await fetch(`${MMTX_API_URL}/rtmpconns/list`)
 
       return Response.json({ hlssessions, webrtcsessions, rtspconns })
-    },
+    }),
 
-    '/mx/events': withCors((req, server) => {
+    '/mx/events': withCORS((req, server) => {
       server.timeout(req, 0)
       let uuid: string
 
