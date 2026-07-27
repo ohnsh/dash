@@ -1,4 +1,4 @@
-import HlsStatStream from './hls-sse'
+import { DASHD_BASE, unpack } from './dashd'
 import HlsStats from './hls-stats'
 import HlsSwitch from './hls-switch'
 import css from './page.module.css'
@@ -9,11 +9,19 @@ export default async function (props: PageProps<'/hls'>) {
     stream = stream[0]
   }
 
+  const resp = await fetch(`${DASHD_BASE}/paths/list`)
+  const { data, error } = await unpack<'pathsList'>(resp)
+
+  if (error) {
+    throw error
+  }
+
   return (
     <main className={css.container}>
-      <HlsSwitch className="mx-auto" />
-      <HlsStats stream={stream} />
-      <HlsStatStream />
+      <HlsSwitch className="mx-auto" items={data.items} />
+      <section className="h-50 overflow-y-scroll">
+        <HlsStats stream={stream} init={{ data, error }} />
+      </section>
     </main>
   )
 }

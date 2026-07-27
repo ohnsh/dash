@@ -2,41 +2,52 @@
 
 import { useSearchParams } from 'next/navigation'
 import type { ComponentPropsWithoutRef } from 'react'
+import type { PathsList } from './dashd'
 import css from './hls-switch.module.css'
 import HlsVideo from './hls-video'
 
-const streams = [
-  { name: 'desk', path: 'desk' },
-  { name: 'wuuk', path: 'wuuk-patch' },
-  { name: 'wyze1', path: 'wyze1-patch' },
-]
+const pathMap = new Map<string, string>([
+  ['wuuk-patch', 'wuuk'],
+  ['wyze1-patch', 'wyze1'],
+])
+
 const cls = (...classes: Array<string | string[] | undefined>) =>
   classes.flat().filter(Boolean).join(' ')
 
 export default function HlsSwitch({
+  items,
   className,
   ...divProps
 }: {
-  className?: string
-  divProps?: ComponentPropsWithoutRef<'div'>
-}) {
+  items: PathsList
+} & ComponentPropsWithoutRef<'div'>) {
   const searchParams = useSearchParams()
   const stream = searchParams.get('stream') ?? 'desk'
   const streamUrl = `https://hls.ohn.sh/${stream}/index.m3u8`
 
+  if (!items) {
+    return undefined
+  }
+
+  const filteredItems = items.filter((item) => Boolean(item.name))
+
   return (
     <div className={cls(className, css.container)} {...divProps}>
       <ul>
-        {streams.map(({ name, path }) => (
-          <li key={name}>
-            <a
-              href={`/hls?stream=${path}`}
-              aria-current={path === stream ? 'page' : undefined}
-            >
-              {name}
-            </a>
-          </li>
-        ))}
+        {filteredItems.map((item) => {
+          const path = item.name!
+          const name = pathMap.get(path) ?? path
+          return (
+            <li key={name}>
+              <a
+                href={`/hls?stream=${path}`}
+                aria-current={path === stream ? 'page' : undefined}
+              >
+                {name}
+              </a>
+            </li>
+          )
+        })}
       </ul>
       <HlsVideo streamUrl={streamUrl} />
     </div>

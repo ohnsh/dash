@@ -1,28 +1,45 @@
+'use client'
+
 import DefList from '@/components/definition-list'
+import type { SuccessType, UnpackResult } from './dashd'
+import useStats from './use-stats'
 
-export default async function HlsStats({ stream }: { stream: string }) {
-  const stats = await fetch(`https://d.ohn.sh/mx/streams/${stream}`).then((r) =>
-    r.json(),
-  )
+const format = (num: number) =>
+  num.toLocaleString(undefined, {
+    maximumSignificantDigits: 5,
+  })
+const toMB = (num: number) => format(num / 2 ** 20)
 
-  const {
-    tracks2,
-    readers,
-    bytesSent,
-    bytesReceived,
-    name,
-    source,
-    online,
-    onlineTime,
-  } = stats
+export default function HlsStats({
+  stream,
+  init,
+}: {
+  stream: string
+  init?: UnpackResult<'pathsList'>
+}) {
+  const { error, data, status, events } = useStats(init)
 
-  const numReaders = readers?.length ?? 0
-  const mbSent = (bytesSent / 2 ** 20).toFixed(2)
-  const mbRecv = (bytesReceived / 2 ** 20).toFixed(2)
+  if (error) {
+    return <div>{JSON.stringify(error)}</div>
+  }
+  if (status === 'loading') {
+    return <div>Loading...</div>
+  }
+
+  const [item] = data
+  const numReaders = (item?.readers?.length ?? 0).toString()
+  const mbOut = toMB(item?.outboundBytes ?? 0)
 
   return (
     <div>
-      <DefList entries={Object.entries({ numReaders, mbSent, mbRecv })} />
+      <DefList entries={Object.entries({ numReaders, mbOut })} />
+      <ul>
+        {events.map((event) => (
+          <li key={event.id}>
+            <DefList entries={Object.entries(event.data)} />
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
