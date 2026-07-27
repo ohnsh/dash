@@ -24,9 +24,9 @@ Bun.serve({
       return Response.json({ ...resp, realSourceIP, requestIP, sseSubscribers })
     }),
 
-    '/mx/streams': withCORS(() => fetch(`${MMTX_API_URL}/paths/list`)),
+    '/mx/paths/list': withCORS(() => fetch(`${MMTX_API_URL}/paths/list`)),
 
-    '/mx/streams/:stream': withCORS((req) => {
+    '/mx/paths/get/:stream': withCORS((req) => {
       const { stream } = req.params
       return fetch(`${MMTX_API_URL}/paths/get/${stream}`)
       // const resp = await fetch(`${MMTX_API_URL}/paths/get/${stream}`)
@@ -71,14 +71,15 @@ Bun.serve({
     }),
 
     '/priv/hook': (req) => {
-      const url = new URL(req.url)
+      const query = new URL(req.url).searchParams
+      query.set('timestamp', new Date().toISOString())
       // const path = url.searchParams.get('path') // $MTX_PATH
       // const reader_type = url.searchParams.get('reader_type') // $MTX_READER_TYPE
       // const reader_id = url.searchParams.get('reader_id') // $MTX_READER_ID
 
-      console.log(`/priv/hook called with ${url.search}`)
+      // console.log(`/priv/hook called with ${url.search}`)
       for (const sc of eventStreamMap.values()) {
-        sc.enqueue(`event: mmtx-hook\ndata: ${url.search}\n\n`)
+        sc.enqueue(`event: mmtx-hook\ndata: ${query.toString()}\n\n`)
       }
       return new Response('thx.')
     },
