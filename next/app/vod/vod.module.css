@@ -1,0 +1,10 @@
+.container {
+  >ul {
+    list-style: none;
+    display: flex;
+
+    img {
+      min-width: 300px;
+    }
+  }
+}
