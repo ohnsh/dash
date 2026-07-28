@@ -2,9 +2,15 @@
   >ul {
     list-style: none;
     display: flex;
+    overflow-x: auto;
 
     img {
       min-width: 300px;
     }
+  }
+
+  video {
+    max-width: 800px;
+    margin-inline: auto;
   }
 }

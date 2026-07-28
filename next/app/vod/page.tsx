@@ -5,22 +5,20 @@ import css from './vod.module.css'
 const ROOT_INV = 'https://vod.ohn.sh/root.txt'
 
 export default async function Vod({ searchParams }: PageProps<'/vod'>) {
-  let { inv: _inv } = await searchParams
-  _inv = Array.isArray(_inv) ? _inv[0] : (_inv ?? '')
-  let invURL: URL
-  if (_inv) {
-    invURL = new URL(_inv)
-  } else {
-    const rootList = await fetch(ROOT_INV)
-      .then((r) => r.text())
-      .then((t) => t.split('\n'))
-    invURL = new URL(rootList[0], 'https://vod.ohn.sh')
-  }
+  let { inv = '', v = '' } = await searchParams
+  inv = Array.isArray(inv) ? inv[0] : inv
+  v = Array.isArray(v) ? v[0] : v
+
+  const rootList = await fetch(ROOT_INV)
+    .then((r) => r.text())
+    .then((t) => t.split('\n'))
+
+  const invURL = new URL(inv || rootList[0], 'https://vod.ohn.sh')
   if (!invURL) {
     throw new Error('No inventory available')
   }
 
-  const inv = await fetch(invURL)
+  const inventory = await fetch(invURL)
     .then((r) => r.json() as Promise<Array<Meta>>)
     .then((j) => j.map((i) => MetaSchema.parse(i)))
 
@@ -31,22 +29,33 @@ export default async function Vod({ searchParams }: PageProps<'/vod'>) {
       invURL,
     ).toString()
 
+  const vidUrl = (name: string) => new URL(name, invURL).toString()
+
   return (
     <main className={css.container}>
+      <header>
+        <ul>
+          {rootList.map((i) => (
+            <li key={i}>
+              <Link href={`?inv=${i}`}>{i}</Link>
+            </li>
+          ))}
+        </ul>
+      </header>
       <h2>{invURL.toString()}</h2>
       <ul>
-        {inv.map((item) => (
+        {inventory.map((item) => (
           <li
             key={item.name}
             className={item.meta_ffprobe.isPortrait ? 'portrait' : 'landscape'}
           >
-            <Link href={`?v=${item.name}`}>
+            <Link href={`?inv=${inv}&v=${item.name}`}>
               <img alt="" src={thumbUrl(item.name)} />
             </Link>
           </li>
         ))}
       </ul>
-      <video autoPlay playsInline src="" />
+      {v && <video autoPlay controls playsInline src={vidUrl(v)} />}
     </main>
   )
 }
