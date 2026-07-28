@@ -4,6 +4,6 @@
   "workspaces": [
     "next",
     "dashd",
-    "mkinventory"
+    "mkoverlay"
   ]
 }
