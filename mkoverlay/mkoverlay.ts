@@ -68,12 +68,12 @@ async function mkThumb(
   const vf = `${isHDR ? `${VF_HDR},` : ''}thumbnail,${vf_scale}`
 
   const baseName = basename(video)
-  const stem = baseName.replace(/\.[^.]+$/, '')
+  // const stem = baseName.replace(/\.[^.]+$/, '')
 
   // The overlay tree consists of directories named after each video. Right now they just
   // contain a single thumbnail, but that will likely change.
   const trueOutDir = join(outDir, `${baseName}+meta`)
-  const outPath = join(trueOutDir, `${stem}.webp`)
+  const outPath = join(trueOutDir, `thumb.webp`)
 
   await $`mkdir -p ${trueOutDir}`
   await $`ffmpeg -v error -i ${video} -vf ${vf} -c:v libwebp -frames:v 1 -y ${outPath}`
