@@ -1,0 +1,14 @@
+{
+  "name": "mkoverlay",
+  "bin": {
+    "mkinventory": "./index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^26.1.2"
+  },
+  "dependencies": {
+    "temporal-polyfill": "^1.0.2",
+    "zod": "^4.4.3"
+  }
+}

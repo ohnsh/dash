@@ -2,6 +2,8 @@
   "name": "dash",
   "private": true,
   "workspaces": [
-    "next", "dashd"
+    "next",
+    "dashd",
+    "mkinventory"
   ]
 }
