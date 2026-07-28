@@ -18,10 +18,12 @@ show() {
   cat "$OV_PREFIX/root.txt"
 }
 
+# sync overlay material (generated files) to R2
 sync_ov() {
   rclone_sec sync -P "$OV_PREFIX" r2:vod
 }
 
+# sync original media to R2
 sync() {
   local rp
   rp=$(realpath "$1")
@@ -32,7 +34,10 @@ sync() {
   fi
 
   local vpath=${1#"$DAYS_PREFIX"}
-  rclone_sec sync -P "$rp" "r2:vod${vpath}"
+  # if we sync, we'll invariably lose the overlay material. The original vision was for
+  # overlay (generated files) and original media to be separate buckets. That may be the
+  # way to go.
+  rclone_sec copy -P "$rp" "r2:vod${vpath}"
 }
 
 if [[ $# -eq 0 ]]; then

@@ -11,6 +11,7 @@ const OVERLAY_PREFIX = '/Volumes/Media/overlay'
 const isVideoExt = (name: string) => /\.(mov|mp4)$/i.test(name)
 
 export async function mkassets(inDir: string, outDir: string) {
+  // This might become recursive at some point. Keeping it simple for now.
   const listing = await fs
     .readdir(inDir, { withFileTypes: true })
     .then((list) =>
@@ -28,6 +29,7 @@ export async function mkassets(inDir: string, outDir: string) {
 
   Bun.write(`${outDir}/inventory.json`, JSON.stringify(metadata, undefined, 2))
 
+  // forEach won't really work without generating dozens of concurrent ffmpeg processes
   let i = 0
   for (const entry of listing) {
     i++
@@ -94,8 +96,4 @@ if (!inDir) {
   throw new Error()
 }
 
-if (!outDir) {
-  await mkassets(inDir, await getOverlayDir(inDir))
-} else {
-  await mkassets(inDir, outDir)
-}
+await mkassets(inDir, outDir || (await getOverlayDir(inDir)))
