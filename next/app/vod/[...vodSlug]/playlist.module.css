@@ -4,8 +4,17 @@
     display: flex;
     overflow-x: auto;
 
+    li {
+      /* display: contents; */
+    }
+
+    a {
+      /* display: contents; */
+    }
+
     img {
-      min-width: 300px;
+      max-width: 300px;
+      /* width: 300px; */
     }
   }
 
