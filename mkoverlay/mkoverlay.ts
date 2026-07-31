@@ -15,7 +15,7 @@ const getType = (name: string) => name.match(/\.([^.]+)$/)?.[1]
 interface MetadataBase {
   key: string
   tree: string
-  type: 'mp4' | 'hls'
+  type: 'mp4' | 'mov' | 'hls'
   meta_exiftool: Awaited<ReturnType<typeof exiftool>>
   meta_ffprobe: Awaited<ReturnType<typeof ffprobe>>
 }
@@ -26,7 +26,7 @@ interface MetadataHLS extends MetadataBase {
 }
 
 interface MetadataVideo extends MetadataBase {
-  type: 'mp4'
+  type: 'mp4' | 'mov'
   playlist?: never
 }
 
@@ -64,40 +64,46 @@ export async function getMetadata(
       ),
     )
 
+  const getEntry = async (
+    type: string | undefined,
+    path: string,
+  ): Promise<[string, Metadata]> => {
+    const { key, tree } = decomposePath(path)
+    if (type === 'hls') {
+      const playlist = await getHlsPlaylist(path)
+      return [
+        key,
+        {
+          key,
+          tree,
+          type,
+          playlist,
+          meta_exiftool: await exiftool(join(path, playlist)),
+          meta_ffprobe: await ffprobe(join(path, playlist)),
+        },
+      ]
+    } else if (type === 'mp4' || type === 'mov') {
+      return [
+        key,
+        {
+          key,
+          type,
+          tree,
+          meta_exiftool: await exiftool(path),
+          meta_ffprobe: await ffprobe(path),
+        },
+      ]
+    } else {
+      throw new Error(`Invalid type ${type} detected for path ${path}`)
+    }
+  }
+
   return Object.fromEntries(
     await Promise.all(
-      listing.map<Promise<[string, Metadata]>>(async (entry) => {
+      listing.map(async (entry) => {
         const path = join(entry.parentPath, entry.name)
-        const { key, tree } = decomposePath(path)
-
         const type = getType(entry.name)
-        let playlist: string | undefined
-
-        switch (type) {
-          case 'hls':
-            playlist = await getHlsPlaylist(path)
-            break
-          case 'mp4':
-            break
-          default:
-            throw new Error(`Invalid file type '${type}' detected for ${path}`)
-        }
-
-        const mediaPath = playlist ? join(path, playlist) : path
-
-        const meta_exiftool = await exiftool(mediaPath)
-        const meta_ffprobe = await ffprobe(mediaPath)
-        return [
-          key,
-          {
-            key,
-            type,
-            tree,
-            meta_exiftool,
-            meta_ffprobe,
-            ...(playlist && { playlist }),
-          } as Metadata,
-        ]
+        return getEntry(type, path)
       }),
     ),
   )
@@ -107,23 +113,22 @@ async function getHlsPlaylist(basePath: string) {
   const glob = new Bun.Glob('**/*.m3u8')
   const firstMatch = await glob.scan(basePath).next()
   if (firstMatch.done) {
-    throw new Error(`No paylist file under ${basePath}`)
+    throw new Error(`No playlist file under ${basePath}`)
   }
   return firstMatch.value
 }
 
 async function mkassets(metadata: Record<string, Metadata>) {
   // forEach won't really work without spawning dozens of concurrent ffmpeg processes.
-  // And traditional `for (let i = 0; i < length; i++)` requires non-null assertion in body.
-  // ...so here we are
-  let i = 0
   const entries = Object.entries(metadata)
   const count = entries.length
-  for (const [key, { tree, playlist, meta_ffprobe }] of entries) {
-    i++
+  for (const [
+    i,
+    [key, { tree, playlist, meta_ffprobe }],
+  ] of entries.entries()) {
     const path = composePath({ key, tree })
     const mediaPath = playlist ? join(path, playlist) : path
-    console.log(`Processing ${mediaPath} [${i} of ${count}]`)
+    console.log(`Processing ${mediaPath} [${i + 1} of ${count}]`)
     await mkthumb(mediaPath, getAssetDir(key), meta_ffprobe)
   }
 }
@@ -216,7 +221,7 @@ async function getDirs(inDir: string) {
 
   if (inDir.startsWith(`${PREFIX}/days/`)) {
     suffix = inDir.slice(`${PREFIX}/days/`.length)
-  } else if (inDir.startsWith(`${PREFIX}`)) {
+  } else if (inDir.startsWith(`${PREFIX}/overlay/`)) {
     suffix = inDir.slice(`${PREFIX}/overlay/`.length)
   } else {
     throw new Error(`Argument must be a path under ${PREFIX}`)
