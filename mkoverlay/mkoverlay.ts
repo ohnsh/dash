@@ -1,7 +1,8 @@
 #!/usr/bin/env bun
 
+import type { Dirent } from 'node:fs'
 import fs from 'node:fs/promises'
-import { basename, join, resolve } from 'node:path'
+import { basename, dirname, join, resolve } from 'node:path'
 import { $ } from 'bun'
 import exiftool from './exiftool'
 import ffprobe from './ffprobe'
@@ -19,7 +20,7 @@ interface Metadata {
 }
 
 interface Inventory extends Metadata {
-  assets: string[]
+  assets?: string[]
 }
 
 const composePath = ({ key, tree }: { key: string; tree: string }) =>
@@ -28,7 +29,9 @@ const composePath = ({ key, tree }: { key: string; tree: string }) =>
 const decomposePath = (path: string) => {
   path = resolve(path)
   if (!path.startsWith(PREFIX)) {
-    throw new Error(`Path must resolve to a location under ${PREFIX}`)
+    throw new Error(
+      `Invalid path '${path}'. Must resolve to a location under ${PREFIX}`,
+    )
   }
   path = path.slice(PREFIX.length + 1)
   const [tree = '', ...keySegments] = path.split('/')
@@ -39,13 +42,26 @@ export async function getMetadata(
   dir: string,
 ): Promise<Record<string, Metadata>> {
   // This might be recursive at some point. Keeping it simple for now.
-  const listing = await fs
-    .readdir(dir, { withFileTypes: true })
-    .then((list) =>
-      list.filter((entry) =>
-        entry.isDirectory() ? isHlsDir(entry.name) : isVideoFile(entry.name),
-      ),
-    )
+  let listing: Dirent<string>[] | undefined
+  try {
+    listing = await fs
+      .readdir(dir, { withFileTypes: true })
+      .then((list) =>
+        list.filter((entry) =>
+          entry.isDirectory() ? isHlsDir(entry.name) : isVideoFile(entry.name),
+        ),
+      )
+  } catch (err) {
+    if (isNodeError(err) && err.code === 'ENOENT') {
+      listing = undefined
+    } else {
+      throw err
+    }
+  }
+
+  if (!listing) {
+    return {}
+  }
 
   return Object.fromEntries(
     await Promise.all(
@@ -76,8 +92,9 @@ async function mkassets(metadata: Record<string, Metadata>) {
   // And traditional `for (let i = 0; i < length; i++)` requires non-null assertion in body.
   // ...so here we are
   let i = 0
-  const count = metadata.length
-  for (const [key, { tree }] of Object.entries(metadata)) {
+  const entries = Object.entries(metadata)
+  const count = entries.length
+  for (const [key, { tree }] of entries) {
     i++
     const path = composePath({ key, tree })
     console.log(`Processing ${path} [${i} of ${count}]`)
@@ -89,22 +106,38 @@ async function mkassets(metadata: Record<string, Metadata>) {
 // directories named after each video. Right now they only contain a single thumbnail, but
 // that will likely change.
 // const stem = baseName.replace(/\.[^.]+$/, '')
-const getAssetDir = (key: string) =>
-  join(composePath({ key, tree: 'overlay' }), '_assets', basename(key))
+const getAssetDir = (key: string) => {
+  const baseDir = dirname(composePath({ key, tree: 'overlay' }))
+  return join(baseDir, '_assets', basename(key))
+}
+
+function isNodeError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && 'code' in error
+}
 
 async function mkinventory(metadata: Record<string, Metadata>) {
   // avoid mutating caller's `metadata`; gradually construct a new object instead.
   const inventory: Record<string, Inventory> = {}
 
   for (const [key, value] of Object.entries(metadata)) {
-    const listing = await fs.readdir(getAssetDir(key))
-    // listing is an array of absolute paths. since this will be an R2 bucket in
-    // production, remove prefix.
-    const assets = listing.map((path) => {
-      const { key, tree } = decomposePath(path)
-      return key
-    })
-    inventory[key] = { assets, ...value }
+    try {
+      const assetDir = getAssetDir(key)
+      const listing = await fs.readdir(assetDir)
+      // listing is an array of absolute paths. since this will be an R2 bucket in
+      // production, remove prefix.
+      const assets = listing.map((name) => {
+        const path = join(assetDir, name)
+        const { key, tree } = decomposePath(path)
+        return key
+      })
+      inventory[key] = { assets, ...value }
+    } catch (err) {
+      if (isNodeError(err) && err.code === 'ENOENT') {
+        inventory[key] = value
+      } else {
+        throw err
+      }
+    }
   }
 
   return inventory
