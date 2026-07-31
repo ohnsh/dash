@@ -3,11 +3,9 @@ import { $ } from 'bun'
 const opts = ['-api', 'QuickTimeUTC', '-j']
 const tags = [
   '-FileSize',
-  '-FileType',
   '-MIMEType',
   '-CreateDate',
   '-ModifyDate',
-  '-MajorBrand',
   '-TimeScale',
   '-Duration',
   '-ImageWidth',

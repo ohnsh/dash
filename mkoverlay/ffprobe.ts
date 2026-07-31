@@ -9,6 +9,15 @@ const ffprobeSchema = z.object({
       rotation: z.coerce.number().default(0),
       duration: z.optional(z.coerce.number()),
       nb_frames: z.optional(z.coerce.number()),
+      r_frame_rate: z.preprocess((val) => {
+        if (typeof val !== 'string') return val
+        const [numer, denom] = val.split('/')
+        if (!numer) return val
+        const result = parseInt(numer, 10) / (denom ? parseInt(denom, 10) : 1)
+        return result.toLocaleString('en-US', { maximumFractionDigits: 2 })
+      }, z.coerce.number()),
+      bit_rate: z.coerce.number(),
+      pix_fmt: z.string(),
       color_space: z.string(),
       color_transfer: z.string(),
       color_primaries: z.string(),
@@ -25,7 +34,8 @@ type FFprobeMetadata = FFprobeOutput['streams'][number] & {
 
 export default async function ffprobe(video: string): Promise<FFprobeMetadata> {
   const ENTRIES =
-    'stream=width,height,nb_frames,duration,color_space,color_transfer,color_primaries' +
+    'stream=width,height,nb_frames,duration,r_frame_rate,bit_rate,pix_fmt' +
+    ',color_space,color_transfer,color_primaries' +
     ':stream_side_data=rotation'
 
   const result = await $`
