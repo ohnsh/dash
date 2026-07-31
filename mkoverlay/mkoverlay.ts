@@ -1,46 +1,116 @@
 #!/usr/bin/env bun
 
 import fs from 'node:fs/promises'
-import { basename, join } from 'node:path'
+import { basename, join, resolve } from 'node:path'
 import { $ } from 'bun'
 import exiftool from './exiftool'
 import ffprobe from './ffprobe'
 
-const DAYS_PREFIX = '/Volumes/Media/days'
-const OVERLAY_PREFIX = '/Volumes/Media/overlay'
-const isVideoExt = (name: string) => /\.(mov|mp4)$/i.test(name)
+const PREFIX = '/Volumes/Media'
 
-export async function mkassets(inDir: string, outDir: string) {
-  // This might become recursive at some point. Keeping it simple for now.
+const isVideoFile = (name: string) => /\.(mov|mp4)$/i.test(name)
+const isHlsDir = (name: string) => /\.hls$/i.test(name)
+
+interface Metadata {
+  key: string
+  tree: string
+  meta_exiftool: Awaited<ReturnType<typeof exiftool>>
+  meta_ffprobe: Awaited<ReturnType<typeof ffprobe>>
+}
+
+interface Inventory extends Metadata {
+  assets: string[]
+}
+
+const composePath = ({ key, tree }: { key: string; tree: string }) =>
+  `${PREFIX}/${tree}/${key}`
+
+const decomposePath = (path: string) => {
+  path = resolve(path)
+  if (!path.startsWith(PREFIX)) {
+    throw new Error(`Path must resolve to a location under ${PREFIX}`)
+  }
+  path = path.slice(PREFIX.length + 1)
+  const [tree = '', ...keySegments] = path.split('/')
+  return { tree, key: keySegments.join('/') }
+}
+
+export async function getMetadata(
+  dir: string,
+): Promise<Record<string, Metadata>> {
+  // This might be recursive at some point. Keeping it simple for now.
   const listing = await fs
-    .readdir(inDir, { withFileTypes: true })
+    .readdir(dir, { withFileTypes: true })
     .then((list) =>
-      list.filter((entry) => !entry.isDirectory() && isVideoExt(entry.name)),
+      list.filter((entry) =>
+        entry.isDirectory() ? isHlsDir(entry.name) : isVideoFile(entry.name),
+      ),
     )
 
-  const metadata = await Promise.all(
-    listing.map(async (entry) => {
-      const path = join(entry.parentPath, entry.name)
-      const meta_exiftool = await exiftool(path)
-      const meta_ffprobe = await ffprobe(path)
-      return { name: entry.name, meta_exiftool, meta_ffprobe }
-    }),
+  return Object.fromEntries(
+    await Promise.all(
+      listing.map<Promise<[string, Metadata]>>(async (entry) => {
+        // what's that they say about naming variables?
+        const _path = join(entry.parentPath, entry.name)
+        const path = isHlsDir(_path) ? await getHlsPlaylist(_path) : _path
+        const { key, tree } = decomposePath(path)
+
+        const meta_exiftool = await exiftool(path)
+        const meta_ffprobe = await ffprobe(path)
+        return [key, { key, tree, meta_exiftool, meta_ffprobe }]
+      }),
+    ),
   )
+}
 
-  Bun.write(`${outDir}/inventory.json`, JSON.stringify(metadata, undefined, 2))
+async function getHlsPlaylist(basePath: string) {
+  const firstMatch = await fs.glob('*.m3u8', { cwd: basePath }).next()
+  if (firstMatch.done) {
+    throw new Error(`No paylist file under ${basePath}`)
+  }
+  return firstMatch.value
+}
 
-  // forEach won't really work without generating dozens of concurrent ffmpeg processes
+async function mkassets(metadata: Record<string, Metadata>) {
+  // forEach won't really work without spawning dozens of concurrent ffmpeg processes.
+  // And traditional `for (let i = 0; i < length; i++)` requires non-null assertion in body.
+  // ...so here we are
   let i = 0
-  for (const entry of listing) {
+  const count = metadata.length
+  for (const [key, { tree }] of Object.entries(metadata)) {
     i++
-    const path = join(entry.parentPath, entry.name)
-    console.log(`Processing ${path} [${i} of ${listing.length}]`)
-    await mkThumb(path, outDir)
-    // $`${import.meta.dir}/mkassets.sh ${path} ${outDir}`
+    const path = composePath({ key, tree })
+    console.log(`Processing ${path} [${i} of ${count}]`)
+    await mkthumb(path, getAssetDir(key))
   }
 }
 
-async function mkThumb(
+// Each content directory in the overlay tree contains an `_assets` subdirectory with
+// directories named after each video. Right now they only contain a single thumbnail, but
+// that will likely change.
+// const stem = baseName.replace(/\.[^.]+$/, '')
+const getAssetDir = (key: string) =>
+  join(composePath({ key, tree: 'overlay' }), '_assets', basename(key))
+
+async function mkinventory(metadata: Record<string, Metadata>) {
+  // avoid mutating caller's `metadata`; gradually construct a new object instead.
+  const inventory: Record<string, Inventory> = {}
+
+  for (const [key, value] of Object.entries(metadata)) {
+    const listing = await fs.readdir(getAssetDir(key))
+    // listing is an array of absolute paths. since this will be an R2 bucket in
+    // production, remove prefix.
+    const assets = listing.map((path) => {
+      const { key, tree } = decomposePath(path)
+      return key
+    })
+    inventory[key] = { assets, ...value }
+  }
+
+  return inventory
+}
+
+async function mkthumb(
   video: string,
   outDir: string,
   metadata?: Awaited<ReturnType<typeof ffprobe>>,
@@ -68,32 +138,43 @@ async function mkThumb(
   // The `thumbnail` filter samples 100 frames and selects the one it considers 'best',
   // based on the histogram I believe.
   const vf = `${isHDR ? `${VF_HDR},` : ''}thumbnail,${vf_scale}`
+  const outPath = join(outDir, `thumb.webp`)
 
-  const baseName = basename(video)
-  // const stem = baseName.replace(/\.[^.]+$/, '')
-
-  // The overlay tree consists of directories named after each video. Right now they just
-  // contain a single thumbnail, but that will likely change.
-  const trueOutDir = join(outDir, `${baseName}+meta`)
-  const outPath = join(trueOutDir, `thumb.webp`)
-
-  await $`mkdir -p ${trueOutDir}`
+  await $`mkdir -p ${outDir}`
   await $`ffmpeg -v error -i ${video} -vf ${vf} -c:v libwebp -frames:v 1 -y ${outPath}`
 }
 
-async function getOverlayDir(daysDir: string) {
-  const realpath = await fs.realpath(daysDir)
-  if (!realpath.startsWith(DAYS_PREFIX)) {
-    throw new Error(
-      `When only one argument is supplied, it must be a path under ${DAYS_PREFIX}`,
-    )
+async function getDirs(inDir: string) {
+  inDir = await fs.realpath(inDir)
+  let suffix: string
+
+  if (inDir.startsWith(`${PREFIX}/days/`)) {
+    suffix = inDir.slice(`${PREFIX}/days/`.length)
+  } else if (inDir.startsWith(`${PREFIX}`)) {
+    suffix = inDir.slice(`${PREFIX}/overlay/`.length)
+  } else {
+    throw new Error(`Argument must be a path under ${PREFIX}`)
   }
-  return realpath.replace(DAYS_PREFIX, OVERLAY_PREFIX)
+
+  return {
+    daysDir: `${PREFIX}/days/${suffix}`,
+    ovDir: `${PREFIX}/overlay/${suffix}`,
+  }
 }
 
-const [, , inDir, outDir] = Bun.argv
+const [, , inDir] = Bun.argv
 if (!inDir) {
   throw new Error()
 }
 
-await mkassets(inDir, outDir || (await getOverlayDir(inDir)))
+const { daysDir, ovDir } = await getDirs(inDir)
+
+const daysMeta = await getMetadata(daysDir)
+const ovMeta = await getMetadata(ovDir)
+await mkassets(daysMeta)
+await mkassets(ovMeta)
+const daysInventory = await mkinventory(daysMeta)
+const ovInventory = await mkinventory(ovMeta)
+const inventory = { ...daysInventory, ...ovInventory }
+
+Bun.write(`${ovDir}/inventory.json`, JSON.stringify(inventory, undefined, 2))
