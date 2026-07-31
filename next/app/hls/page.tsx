@@ -13,7 +13,15 @@ export default async function (props: PageProps<'/hls'>) {
   const { data, error } = await unpack<'pathsList'>(resp)
 
   if (error) {
-    throw error
+    return (
+      <main className={css.container}>
+        <HlsSwitch className="mx-auto" />
+        <section className="h-50 mt-4 text-center font-bold overflow-y-scroll">
+          Error reaching dashd
+        </section>
+      </main>
+    )
+    // throw error
   }
 
   return (

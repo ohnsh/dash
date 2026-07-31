@@ -11,23 +11,25 @@ const pathMap = new Map<string, string>([
   ['wyze1-patch', 'wyze1'],
 ])
 
+const defaultItems = [
+  { name: 'desk' },
+  { name: 'wuuk-patch' },
+  { name: 'wyze1-patch' },
+]
+
 const cls = (...classes: Array<string | string[] | undefined>) =>
   classes.flat().filter(Boolean).join(' ')
 
 export default function HlsSwitch({
-  items,
+  items = defaultItems,
   className,
   ...divProps
 }: {
-  items: PathsList
+  items?: PathsList
 } & ComponentPropsWithoutRef<'div'>) {
   const searchParams = useSearchParams()
   const stream = searchParams.get('stream') ?? 'desk'
   const streamUrl = `https://hls.ohn.sh/${stream}/index.m3u8`
-
-  if (!items) {
-    return undefined
-  }
 
   const filteredItems = items.filter((item) => Boolean(item.name))
 

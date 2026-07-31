@@ -7,11 +7,14 @@ type StatusCode<Op extends keyof operations> = keyof operations[Op]['responses']
 export type ContentByStatus<
   Op extends keyof operations,
   Status extends StatusCode<Op> = StatusCode<Op>,
-> = operations[Op]['responses'][Status] extends {
-  content: { 'application/json': infer T }
-}
-  ? T
-  : never
+> =
+  Status extends StatusCode<Op>
+    ? operations[Op]['responses'][Status] extends {
+        content: { 'application/json': infer T }
+      }
+      ? T
+      : never
+    : never
 
 export type PathsList = components['schemas']['PathList']['items']
 // export type Path = components['schemas']['Path']
@@ -22,17 +25,18 @@ export interface TResponse<T> extends Response {
 
 export function isOk<Op extends keyof operations>(
   response: Response,
-): response is TResponse<ContentByStatus<Op, SuccessCode>> {
+): response is TResponse<SuccessType<Op>> {
   return response.ok
 }
 
 export function isError<Op extends keyof operations>(
   response: Response,
-): response is TResponse<ContentByStatus<Op, ErrorCode<Op>>> {
+): response is TResponse<ErrorType<Op>> {
   return !response.ok
 }
 
-type SuccessCode = 200
+type SuccessCode = 200 | 201 | 202 | 203 | 204 | 205 | 206 | 207 | '2XX'
+
 type ErrorCode<Op extends keyof operations> = Exclude<
   StatusCode<Op>,
   SuccessCode
@@ -40,8 +44,9 @@ type ErrorCode<Op extends keyof operations> = Exclude<
 
 export type SuccessType<Op extends keyof operations> = ContentByStatus<
   Op,
-  SuccessCode
+  Extract<StatusCode<Op>, SuccessCode>
 >
+
 export type ErrorType<Op extends keyof operations> = ContentByStatus<
   Op,
   ErrorCode<Op>
@@ -52,6 +57,7 @@ export type Operation = keyof operations
 export type UnpackResult<Op extends keyof operations> =
   | { data: SuccessType<Op>; error?: never }
   | { error: ErrorType<Op>; data?: never }
+  | { error: 'non-api-error'; data?: never }
 
 export async function unpack<Op extends keyof operations>(
   response: Response,
@@ -59,7 +65,11 @@ export async function unpack<Op extends keyof operations>(
   if (isOk<Op>(response)) {
     return { data: await response.json() }
   } else if (isError<Op>(response)) {
-    return { error: await response.json() }
+    try {
+      return { error: await response.json() }
+    } catch (err) {
+      return { error: 'non-api-error' }
+    }
   } else {
     throw response
   }
