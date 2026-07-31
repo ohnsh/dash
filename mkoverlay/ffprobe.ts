@@ -7,7 +7,7 @@ const ffprobeSchema = z.object({
       width: z.coerce.number(),
       height: z.coerce.number(),
       rotation: z.coerce.number().default(0),
-      duration: z.coerce.number(),
+      duration: z.optional(z.coerce.number()),
       nb_frames: z.optional(z.coerce.number()),
       color_space: z.string(),
       color_transfer: z.string(),

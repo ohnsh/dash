@@ -1,6 +1,5 @@
 #!/usr/bin/env bun
 
-import type { Dirent } from 'node:fs'
 import fs from 'node:fs/promises'
 import { basename, dirname, join, resolve } from 'node:path'
 import { $ } from 'bun'
@@ -11,17 +10,32 @@ const PREFIX = '/Volumes/Media'
 
 const isVideoFile = (name: string) => /\.(mov|mp4)$/i.test(name)
 const isHlsDir = (name: string) => /\.hls$/i.test(name)
+const getType = (name: string) => name.match(/\.([^.]+)$/)?.[1]
 
-interface Metadata {
+interface MetadataBase {
   key: string
   tree: string
+  type: 'mp4' | 'hls'
   meta_exiftool: Awaited<ReturnType<typeof exiftool>>
   meta_ffprobe: Awaited<ReturnType<typeof ffprobe>>
 }
 
-interface Inventory extends Metadata {
-  assets?: string[]
+interface MetadataHLS extends MetadataBase {
+  type: 'hls'
+  playlist: string
 }
+
+interface MetadataVideo extends MetadataBase {
+  type: 'mp4'
+  playlist?: never
+}
+
+type Metadata = MetadataHLS | MetadataVideo
+type Inventory = Metadata & { assets: string[] }
+// probably pointless
+// interface Inventory extends Metadata {
+//   assets?: string[]
+// }
 
 const composePath = ({ key, tree }: { key: string; tree: string }) =>
   `${PREFIX}/${tree}/${key}`
@@ -42,45 +56,56 @@ export async function getMetadata(
   dir: string,
 ): Promise<Record<string, Metadata>> {
   // This might be recursive at some point. Keeping it simple for now.
-  let listing: Dirent<string>[] | undefined
-  try {
-    listing = await fs
-      .readdir(dir, { withFileTypes: true })
-      .then((list) =>
-        list.filter((entry) =>
-          entry.isDirectory() ? isHlsDir(entry.name) : isVideoFile(entry.name),
-        ),
-      )
-  } catch (err) {
-    if (isNodeError(err) && err.code === 'ENOENT') {
-      listing = undefined
-    } else {
-      throw err
-    }
-  }
-
-  if (!listing) {
-    return {}
-  }
+  const listing = await fs
+    .readdir(dir, { withFileTypes: true })
+    .then((list) =>
+      list.filter((entry) =>
+        entry.isDirectory() ? isHlsDir(entry.name) : isVideoFile(entry.name),
+      ),
+    )
 
   return Object.fromEntries(
     await Promise.all(
       listing.map<Promise<[string, Metadata]>>(async (entry) => {
-        // what's that they say about naming variables?
-        const _path = join(entry.parentPath, entry.name)
-        const path = isHlsDir(_path) ? await getHlsPlaylist(_path) : _path
+        const path = join(entry.parentPath, entry.name)
         const { key, tree } = decomposePath(path)
 
-        const meta_exiftool = await exiftool(path)
-        const meta_ffprobe = await ffprobe(path)
-        return [key, { key, tree, meta_exiftool, meta_ffprobe }]
+        const type = getType(entry.name)
+        let playlist: string | undefined
+
+        switch (type) {
+          case 'hls':
+            playlist = await getHlsPlaylist(path)
+            break
+          case 'mp4':
+            break
+          default:
+            throw new Error(`Invalid file type '${type}' detected for ${path}`)
+        }
+
+        const mediaPath = playlist ? join(path, playlist) : path
+
+        const meta_exiftool = await exiftool(mediaPath)
+        const meta_ffprobe = await ffprobe(mediaPath)
+        return [
+          key,
+          {
+            key,
+            type,
+            tree,
+            meta_exiftool,
+            meta_ffprobe,
+            ...(playlist && { playlist }),
+          } as Metadata,
+        ]
       }),
     ),
   )
 }
 
 async function getHlsPlaylist(basePath: string) {
-  const firstMatch = await fs.glob('*.m3u8', { cwd: basePath }).next()
+  const glob = new Bun.Glob('**/*.m3u8')
+  const firstMatch = await glob.scan(basePath).next()
   if (firstMatch.done) {
     throw new Error(`No paylist file under ${basePath}`)
   }
@@ -94,11 +119,12 @@ async function mkassets(metadata: Record<string, Metadata>) {
   let i = 0
   const entries = Object.entries(metadata)
   const count = entries.length
-  for (const [key, { tree }] of entries) {
+  for (const [key, { tree, playlist, meta_ffprobe }] of entries) {
     i++
     const path = composePath({ key, tree })
-    console.log(`Processing ${path} [${i} of ${count}]`)
-    await mkthumb(path, getAssetDir(key))
+    const mediaPath = playlist ? join(path, playlist) : path
+    console.log(`Processing ${mediaPath} [${i} of ${count}]`)
+    await mkthumb(mediaPath, getAssetDir(key), meta_ffprobe)
   }
 }
 
@@ -120,24 +146,25 @@ async function mkinventory(metadata: Record<string, Metadata>) {
   const inventory: Record<string, Inventory> = {}
 
   for (const [key, value] of Object.entries(metadata)) {
+    let assets: string[]
     try {
       const assetDir = getAssetDir(key)
       const listing = await fs.readdir(assetDir)
       // listing is an array of absolute paths. since this will be an R2 bucket in
       // production, remove prefix.
-      const assets = listing.map((name) => {
+      assets = listing.map((name) => {
         const path = join(assetDir, name)
-        const { key, tree } = decomposePath(path)
+        const { key } = decomposePath(path)
         return key
       })
-      inventory[key] = { assets, ...value }
     } catch (err) {
       if (isNodeError(err) && err.code === 'ENOENT') {
-        inventory[key] = value
+        assets = []
       } else {
         throw err
       }
     }
+    inventory[key] = { assets, ...value }
   }
 
   return inventory
@@ -146,8 +173,15 @@ async function mkinventory(metadata: Record<string, Metadata>) {
 async function mkthumb(
   video: string,
   outDir: string,
-  metadata?: Awaited<ReturnType<typeof ffprobe>>,
+  metadata?: { isHDR: boolean; isPortrait: boolean },
 ) {
+  const outPath = join(outDir, `thumb.webp`)
+
+  if (await Bun.file(outPath).exists()) {
+    console.log(`Skipping thumbnail generation; file exists: ${outPath}`)
+    return
+  }
+
   if (!metadata) {
     metadata = await ffprobe(video)
   }
@@ -171,7 +205,6 @@ async function mkthumb(
   // The `thumbnail` filter samples 100 frames and selects the one it considers 'best',
   // based on the histogram I believe.
   const vf = `${isHDR ? `${VF_HDR},` : ''}thumbnail,${vf_scale}`
-  const outPath = join(outDir, `thumb.webp`)
 
   await $`mkdir -p ${outDir}`
   await $`ffmpeg -v error -i ${video} -vf ${vf} -c:v libwebp -frames:v 1 -y ${outPath}`
@@ -195,19 +228,35 @@ async function getDirs(inDir: string) {
   }
 }
 
+async function ensureExists(...dirs: string[]) {
+  for (const dir of dirs) {
+    await fs.mkdir(dir, { recursive: true })
+  }
+}
+
 const [, , inDir] = Bun.argv
 if (!inDir) {
   throw new Error()
 }
 
-const { daysDir, ovDir } = await getDirs(inDir)
+async function mkoverlay(...dirs: string[]) {
+  // watch out for subtle bugs that might result from concurrent async operations
+  // I can't see any at the moment
+  const metas = await Promise.all(dirs.map(getMetadata))
+  await Promise.all(metas.map(mkassets))
+  return await Promise.all(metas.map(mkinventory))
+}
 
-const daysMeta = await getMetadata(daysDir)
-const ovMeta = await getMetadata(ovDir)
-await mkassets(daysMeta)
-await mkassets(ovMeta)
-const daysInventory = await mkinventory(daysMeta)
-const ovInventory = await mkinventory(ovMeta)
+const { daysDir, ovDir } = await getDirs(inDir)
+await ensureExists(daysDir, ovDir)
+
+const [daysInventory, ovInventory] = await mkoverlay(daysDir, ovDir)
+// const daysMeta = await getMetadata(daysDir)
+// const ovMeta = await getMetadata(ovDir)
+// await mkassets(daysMeta)
+// await mkassets(ovMeta)
+// const daysInventory = await mkinventory(daysMeta)
+// const ovInventory = await mkinventory(ovMeta)
 const inventory = { ...daysInventory, ...ovInventory }
 
 Bun.write(`${ovDir}/inventory.json`, JSON.stringify(inventory, undefined, 2))
