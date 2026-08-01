@@ -1,6 +1,7 @@
 'use client'
 
 import type HlsType from 'hls.js'
+import Script from 'next/script'
 import { useEffect, useRef } from 'react'
 
 declare global {
@@ -43,13 +44,19 @@ export default function ClientStream({ streamUrl }: { streamUrl: string }) {
   }, [streamUrl])
 
   return (
-    <video
-      ref={videoRef}
-      controls
-      autoPlay
-      muted
-      width="640"
-      height="360"
-    ></video>
+    <>
+      <video
+        ref={videoRef}
+        controls
+        autoPlay
+        muted
+        width="640"
+        height="360"
+      ></video>
+      <Script
+        src="https://cdn.jsdelivr.net/npm/hls.js@latest"
+        strategy="beforeInteractive"
+      />
+    </>
   )
 }

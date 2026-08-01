@@ -31,6 +31,8 @@ export default function HlsSwitch({
   const stream = searchParams.get('stream') ?? 'desk'
   const streamUrl = `https://hls.ohn.sh/${stream}/index.m3u8`
 
+  console.log(items)
+
   const filteredItems = items.filter((item) => Boolean(item.name))
 
   return (
@@ -40,7 +42,7 @@ export default function HlsSwitch({
           const path = item.name!
           const name = pathMap.get(path) ?? path
           return (
-            <li key={name}>
+            <li key={path}>
               <a
                 href={`/hls?stream=${path}`}
                 aria-current={path === stream ? 'page' : undefined}

@@ -30,8 +30,6 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      {/* No need to keep this, but for the CDN experiment it's essential
-      for it to be above the client-side navigation boundary. */}
       <body className={`${css.body}`}>
         <header>
           <h1>
@@ -44,10 +42,6 @@ export default function RootLayout({
           </h1>
         </header>
         {children}
-        <Script
-          src="https://cdn.jsdelivr.net/npm/hls.js@latest"
-          strategy="beforeInteractive"
-        />
         <footer>
           <Footer />
         </footer>

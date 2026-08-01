@@ -4,7 +4,7 @@ interface Params {
   streamUrl: string
 }
 
-export default async function ({ streamUrl }: Params) {
+export default function ({ streamUrl }: Params) {
   return (
     <div>
       <video
@@ -17,6 +17,10 @@ export default async function ({ streamUrl }: Params) {
         height="360"
       ></video>
 
+      <Script
+        src="https://cdn.jsdelivr.net/npm/hls.js@latest"
+        strategy="beforeInteractive"
+      />
       {/* id required for inline scripts */}
       {/* lowercase <script> will work with `dangerouslySetInnerHTML` */}
       <Script id="vid-attach-inline" strategy="lazyOnload">
