@@ -1,9 +1,14 @@
 {
   "name": "dashd",
+  "type": "module",
+  "scripts": {
+    "start": "bun run --port=4100 ./src/index.ts",
+    "dev": "bun run --watch --port=4100 ./src/index.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
   "dependencies": {
-    "@biomejs/biome": "^2.5.5"
+    "@biomejs/biome": "^2.5.6"
   }
 }

@@ -1,0 +1,23 @@
+services:
+  dashd:
+    image: dashd:latest
+    build: .
+    container_name: dashd
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+    environment:
+      - PORT=4100
+    ports:
+      - 4100:4100
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    external_links:
+      - cloudflared:.
+    # networks:
+    #   - tunnel_net
+
+# networks:
+#   tunnel_net:
+#     external: true
+#     name: tunnel-net
