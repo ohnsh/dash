@@ -24,6 +24,74 @@ Bun.serve({
       return Response.json({ ...resp, realSourceIP, requestIP, sseSubscribers })
     }),
 
+    '/mx/snapshot/:snap': withCORS(async (req, server) => {
+      console.log('snapshot route')
+      const { snap } = req.params
+      const map = {
+        wuuk: {
+          url: 'http://ing-wuuk.local/x/ch0.jpg',
+          token: import.meta.env.WUUK_API_KEY,
+        },
+        'wuuk-patch': {
+          url: 'http://ing-wuuk.local/x/ch0.jpg',
+          token: import.meta.env.WUUK_API_KEY,
+        },
+      }
+      const isKey = (key: string): key is keyof typeof map => key in map
+
+      if (!snap?.endsWith('.jpg')) {
+        return Response.json(
+          { error: 'Request URL must end in .jpg' },
+          { status: 404 },
+        )
+      }
+
+      const cam = snap.replace(/\.jpg$/, '')
+      if (!isKey(cam)) {
+        return Response.json(
+          { error: `No camera named ${cam}` },
+          { status: 404 },
+        )
+      }
+
+      // promising javascript mdns implementations:
+      // https://github.com/mafintosh/multicast-dns
+      // https://github.com/onlxltd/bonjour-service
+
+      const { url, token } = map[cam]
+      if (!token) {
+        return Response.json(
+          { error: `No API key available for ${cam}` },
+          { status: 401 },
+        )
+      }
+
+      const urlObj = new URL(url)
+      urlObj.searchParams.set('token', token)
+      // thingino apparently used to do auth this way:
+      // { headers: { 'X-API-Key': token } }
+      const upstream = await fetch(urlObj)
+
+      // By default, Cloudflare caches static assets like jpegs for a few hours.
+      // It does not respect request `Cache-Control: no-cache` headers, but it does
+      // respect cache-control headers in responses from the origin (implemented
+      // below). Another option is a cache-busting query parameter in the request (works
+      // transparently through this route handler).
+      const headers = new Headers(upstream.headers)
+      headers.set(
+        'Cache-Control',
+        'no-store, no-cache, must-revalidate, max-age=0',
+      )
+      headers.set('Pragma', 'no-cache')
+      headers.set('Expires', '0')
+
+      return new Response(upstream.body, {
+        status: upstream.status,
+        statusText: upstream.statusText,
+        headers,
+      })
+    }),
+
     '/mx/paths/list': withCORS(() => fetch(`${MMTX_API_URL}/paths/list`)),
 
     '/mx/paths/get/:stream': withCORS((req) => {
