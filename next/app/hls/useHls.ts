@@ -40,10 +40,14 @@ export function useHls(streamUrl: string) {
       // could help with sporadic cookie errors:
       // enableWorker: false,
 
-      // crucial for mobile safari to work:
-      xhrSetup(xhr, _url) {
-        xhr.withCredentials = true
-      },
+      // Once thought to be crucial for mobile safari to work:
+      // Creates problems with the wildcard CORS allowed origin.
+      // Currently, streaming works fine without this setting, and without sending cookies
+      // with every request, which is great.
+      //
+      // xhrSetup(xhr, _url) {
+      //   xhr.withCredentials = true
+      // },
     })
 
     hlsRef.current = hls

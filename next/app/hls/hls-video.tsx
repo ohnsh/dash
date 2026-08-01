@@ -10,9 +10,9 @@ export default function ClientStream({ streamUrl }: { streamUrl: string }) {
       ref={videoRef}
       controls
       autoPlay
+      playsInline
       muted
       style={{ width: '100%', aspectRatio: '16/9' }}
-      crossOrigin="use-credentials"
       // width="640"
       // height="360"
     ></video>
