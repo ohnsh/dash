@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   DASHD_BASE,
   type ErrorType,
-  type Operation,
   type SuccessType,
   type UnpackResult,
   unpack,
@@ -20,7 +19,11 @@ type State =
       error?: never
     }
   | { status: 'loading'; data?: never; error?: never }
-  | { status: 'error'; error: ErrorType<'pathsList'>; data?: never }
+  | {
+      status: 'error'
+      error: ErrorType<'pathsList'> | 'non-api-error'
+      data?: never
+    }
 
 const resultToState = ({ data, error }: UnpackResult<'pathsList'>): State => {
   if (data) {
@@ -54,7 +57,7 @@ export default function useStats(
   }
 
   if (!promise) {
-    promise = fetch(`${DASHD_BASE}/paths/list`)
+    promise = fetch(`${endpoint}/paths/list`)
     wireUp(promise)
   }
 

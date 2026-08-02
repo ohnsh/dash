@@ -1,7 +1,7 @@
 'use client'
 
 import DefList from '@/components/definition-list'
-import type { SuccessType, UnpackResult } from './dashd'
+import type { UnpackResult } from './dashd'
 import useStats from './use-stats'
 
 const format = (num: number) =>
@@ -26,7 +26,7 @@ export default function HlsStats({
     return <div>Loading...</div>
   }
 
-  const [item] = data
+  const item = data.find(({ name }) => name === stream)
   const numReaders = (item?.readers?.length ?? 0).toString()
   const mbOut = toMB(item?.outboundBytes ?? 0)
 

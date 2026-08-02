@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation'
 import type { ComponentPropsWithoutRef } from 'react'
-import type { PathsList } from './dashd'
+import type { Path, PathsList } from './dashd'
 import css from './hls-switch.module.css'
 import HlsVideo from './hls-video'
 
@@ -33,13 +33,15 @@ export default function HlsSwitch({
 
   console.log(items)
 
-  const filteredItems = items.filter((item) => Boolean(item.name))
+  const filteredItems = items.filter((item): item is Path & { name: string } =>
+    Boolean(item.name),
+  )
 
   return (
     <div className={cls(className, css.container)} {...divProps}>
       <ul>
         {filteredItems.map((item) => {
-          const path = item.name!
+          const path = item.name
           const name = pathMap.get(path) ?? path
           return (
             <li key={path}>

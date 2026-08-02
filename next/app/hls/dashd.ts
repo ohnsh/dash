@@ -17,7 +17,7 @@ export type ContentByStatus<
     : never
 
 export type PathsList = components['schemas']['PathList']['items']
-// export type Path = components['schemas']['Path']
+export type Path = components['schemas']['Path']
 
 export interface TResponse<T> extends Response {
   json: () => Promise<T>
@@ -67,7 +67,7 @@ export async function unpack<Op extends keyof operations>(
   } else if (isError<Op>(response)) {
     try {
       return { error: await response.json() }
-    } catch (err) {
+    } catch (_err) {
       return { error: 'non-api-error' }
     }
   } else {
