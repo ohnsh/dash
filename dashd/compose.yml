@@ -5,19 +5,24 @@ services:
     container_name: dashd
     restart: unless-stopped
     tty: true
-    stdin_open: true
     environment:
       - PORT=4100
+      - MMTX_API_URL=host.docker.internal:9997/v3
+      - WUUK_API_KEY
+      - WYZE1_API_KEY
+    volumes:
+      - ./src:/app/src:ro
     ports:
       - 4100:4100
     extra_hosts:
       - host.docker.internal:host-gateway
-    external_links:
-      - cloudflared:.
-    # networks:
-    #   - tunnel_net
+      - ing-wuuk.local:$WUUK_LOCAL_IP
+      - ing-wyze-1.local:$WYZE1_LOCAL_IP
+    networks:
+      tunnelnet:
+        ipv4_address: 172.19.0.3
 
-# networks:
-#   tunnel_net:
-#     external: true
-#     name: tunnel-net
+networks:
+  tunnelnet:
+    external: true
+    name: tunnelnet

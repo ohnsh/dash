@@ -1,7 +1,7 @@
 import Bun from 'bun'
 import withCORS from './with-cors'
 
-const MMTX_API_URL = 'http://localhost:9997/v3'
+const MMTX_API_URL = import.meta.env.MMTX_API_URL || 'http://localhost:9997/v3'
 
 const eventStreamMap = new Map<string, ReadableStreamDefaultController>()
 
