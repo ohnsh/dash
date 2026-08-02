@@ -6,6 +6,14 @@ const nextConfig: NextConfig = {
   experimental: {
     useTypeScriptCli: true,
   },
+  async rewrites() {
+    return [
+      {
+        source: '/',
+        destination: '/hls',
+      },
+    ]
+  },
 }
 
 const withMDX = createMDX()

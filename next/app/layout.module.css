@@ -50,10 +50,17 @@
       text-decoration: none;
     }
   }
+}
 
-  ul {
-    list-style: disc;
-    padding-inline: 1.5rem;
-    margin-inline: 0;
+.torso {
+  display: flex;
+
+  main {
+    flex: 1 0 auto;
   }
+}
+
+.sidebar {
+  flex: 0 0 250px;
+  backdrop-filter: brightness(1.3);
 }

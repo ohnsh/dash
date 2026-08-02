@@ -51,13 +51,13 @@ export default async function Home({
   }
 
   return (
-    <main className="py-5 px-10 mx-auto max-w-5xl">
+    <article className="py-5 px-10 mx-auto max-w-5xl">
       <section className="my-6">
         <Experiment tech={tech} streamUrl={streamUrl} />
       </section>
       <section className="my-6">
         <Content />
       </section>
-    </main>
+    </article>
   )
 }

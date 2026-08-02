@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import Script from 'next/script'
+import Sidebar from './sidebar'
 import './globals.css'
 import Footer from './footer.mdx'
 import css from './layout.module.css'
@@ -41,7 +42,10 @@ export default function RootLayout({
             </a>
           </h1>
         </header>
-        {children}
+        <div className={css.torso}>
+          <Sidebar />
+          <main>{children}</main>
+        </div>
         <footer>
           <Footer />
         </footer>

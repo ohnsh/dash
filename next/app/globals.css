@@ -30,3 +30,9 @@ a {
   color: var(--color-accent);
   text-decoration: underline;
 }
+
+ul {
+  list-style: disc;
+  padding-inline: 1.5rem;
+  margin-inline: 0;
+}

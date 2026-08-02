@@ -28,14 +28,25 @@ export default function HlsSwitch({
   items?: PathsList
 } & ComponentPropsWithoutRef<'div'>) {
   const searchParams = useSearchParams()
-  const stream = searchParams.get('stream') ?? 'desk'
-  const streamUrl = `https://hls.ohn.sh/${stream}/index.m3u8`
-
-  console.log(items)
+  let stream = searchParams.get('stream')
 
   const filteredItems = items.filter((item): item is Path & { name: string } =>
     Boolean(item.name),
   )
+
+  if (!stream) {
+    stream = filteredItems[0]?.name
+  }
+
+  if (!stream) {
+    return (
+      <div className={cls(className, css.container)} {...divProps}>
+        No streams available.
+      </div>
+    )
+  }
+
+  const streamUrl = `https://hls.ohn.sh/${stream}/index.m3u8`
 
   return (
     <div className={cls(className, css.container)} {...divProps}>

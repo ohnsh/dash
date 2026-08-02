@@ -4,7 +4,7 @@ import HlsSwitch from './hls-switch'
 import css from './page.module.css'
 
 export default async function (props: PageProps<'/hls'>) {
-  let { stream = 'desk' } = await props.searchParams
+  let { stream } = await props.searchParams
   if (Array.isArray(stream)) {
     stream = stream[0]
   }
@@ -14,22 +14,26 @@ export default async function (props: PageProps<'/hls'>) {
 
   if (error) {
     return (
-      <main className={css.container}>
+      <article className={css.container}>
         <HlsSwitch className="mx-auto" />
         <section className="h-50 mt-4 text-center font-bold overflow-y-scroll">
           Error reaching dashd
         </section>
-      </main>
+      </article>
     )
     // throw error
   }
 
+  if (!stream || !data.items?.find((item) => item.name === stream)) {
+    stream = data.items?.[0].name
+  }
+
   return (
-    <main className={css.container}>
+    <article className={css.container}>
       <HlsSwitch className="mx-auto" items={data.items} />
       <section className="h-50 overflow-y-scroll">
-        <HlsStats stream={stream} init={{ data, error }} />
+        {stream && <HlsStats stream={stream} init={{ data, error }} />}
       </section>
-    </main>
+    </article>
   )
 }
