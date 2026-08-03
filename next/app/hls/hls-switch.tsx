@@ -6,16 +6,18 @@ import type { Path, PathsList } from './dashd'
 import css from './hls-switch.module.css'
 import HlsVideo from './hls-video'
 
-const pathMap = new Map<string, string>([
-  ['wuuk-patch', 'wuuk'],
-  ['wyze1-patch', 'wyze1'],
-])
+const pathMap = {
+  wuuk: 'wuuk-patch',
+  wyze1: 'wyze1-patch',
+  desk: 'desk',
+} as const
 
-const defaultItems = [
-  { name: 'desk' },
-  { name: 'wuuk-patch' },
-  { name: 'wyze1-patch' },
-]
+const defaultItems = [{ name: 'desk' }, { name: 'wuuk' }, { name: 'wyze1' }]
+
+type StreamKey = keyof typeof pathMap
+
+const isValidStream = (name: unknown): name is StreamKey =>
+  typeof name === 'string' && Object.hasOwn(pathMap, name)
 
 const cls = (...classes: Array<string | string[] | undefined>) =>
   classes.flat().filter(Boolean).join(' ')
@@ -30,35 +32,35 @@ export default function HlsSwitch({
   const searchParams = useSearchParams()
   let stream = searchParams.get('stream')
 
-  const filteredItems = items.filter((item): item is Path & { name: string } =>
-    Boolean(item.name),
+  const filteredItems = items.filter(
+    (item): item is Path & { name: StreamKey } => isValidStream(item.name),
   )
 
   if (!stream) {
-    stream = filteredItems[0]?.name
+    // default to first stream set to `online`
+    stream = filteredItems.find((item) => item.online)?.name ?? null
   }
 
-  if (!stream) {
+  if (!stream || !isValidStream(stream)) {
     return (
       <div className={cls(className, css.container)} {...divProps}>
-        No streams available.
+        {!stream ? 'No streams available.' : `Invalid stream ${stream}`}
       </div>
     )
   }
 
-  const streamUrl = `https://hls.ohn.sh/${stream}/index.m3u8`
+  const streamUrl = `https://hls.ohn.sh/${pathMap[stream]}/index.m3u8`
 
   return (
     <div className={cls(className, css.container)} {...divProps}>
       <ul>
         {filteredItems.map((item) => {
-          const path = item.name
-          const name = pathMap.get(path) ?? path
+          const { name } = item
           return (
-            <li key={path}>
+            <li key={name}>
               <a
-                href={`/hls?stream=${path}`}
-                aria-current={path === stream ? 'page' : undefined}
+                href={`/hls?stream=${name}`}
+                aria-current={name === stream ? 'page' : undefined}
               >
                 {name}
               </a>

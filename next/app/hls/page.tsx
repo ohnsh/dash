@@ -25,7 +25,8 @@ export default async function (props: PageProps<'/hls'>) {
   }
 
   if (!stream || !data.items?.find((item) => item.name === stream)) {
-    stream = data.items?.[0].name
+    // if no (valid) stream in query params, use the first that's set to `online`
+    stream = data.items?.find((item) => item.online)?.name
   }
 
   return (
