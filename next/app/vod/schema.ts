@@ -5,11 +5,11 @@ import * as z from 'zod'
 export const MetaExiftoolSchema = z.object({
   sourceFile: z.string(),
   fileSize: z.string(),
-  fileType: z.string(),
   mimeType: z.string(),
-  createDate: z.string(),
+  // probably need to make the rest optional.
+  // currently trying to treat hls differently instead
+  createDate: z.optional(z.string()),
   modifyDate: z.string(),
-  majorBrand: z.string(),
   timeScale: z.number(),
   duration: z.string(),
   imageWidth: z.number(),
@@ -22,6 +22,10 @@ export const MetaExiftoolSchema = z.object({
   compressorID: z.string(),
   bitDepth: z.number(),
   imageSize: z.string(),
+  audioFormat: z.string(),
+  audioChannels: z.number(),
+  audioBitsPerSample: z.number(),
+  audioSampleRate: z.number(),
 })
 export type MetaExiftool = z.infer<typeof MetaExiftoolSchema>
 
@@ -31,6 +35,9 @@ export const MetaFfprobeSchema = z.object({
   rotation: z.number(),
   duration: z.number(),
   nb_frames: z.number(),
+  r_frame_rate: z.number(),
+  bit_rate: z.number(),
+  pix_fmt: z.string(),
   color_space: z.string(),
   color_transfer: z.string(),
   color_primaries: z.string(),
@@ -40,7 +47,10 @@ export const MetaFfprobeSchema = z.object({
 export type MetaFfprobe = z.infer<typeof MetaFfprobeSchema>
 
 export const MetaSchema = z.object({
-  name: z.string(),
+  assets: z.array(z.string()),
+  key: z.string(),
+  type: z.enum(['mp4', 'hls', 'mov']),
+  tree: z.enum(['days', 'overlay']),
   meta_exiftool: MetaExiftoolSchema,
   meta_ffprobe: MetaFfprobeSchema,
 })

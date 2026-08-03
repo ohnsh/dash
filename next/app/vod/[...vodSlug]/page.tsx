@@ -14,12 +14,10 @@ export default async function Vod({ searchParams, params }: PageProps<'/vod/[...
   }
 
   const inventory = await fetch(invURL)
-    .then((r) => r.json() as Promise<Array<Meta>>)
-    .then((j) => j.map((i) => MetaSchema.parse(i)))
+    .then((r) => r.json() as Promise<Record<string,Meta>>)
+    .then((j) => Object.values(j).map((i) => i.type === 'hls' ? i : MetaSchema.parse(i)))
 
   return (
-    <main>
-      <Playlist slug={vodSlug} inventory={inventory} />
-    </main>
+    <Playlist slug={vodSlug} inventory={inventory} />
   )
 }

@@ -1,10 +1,23 @@
 'use client'
 
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
+import { useMemo } from 'react'
 import type { Meta } from '../schema'
 import css from './playlist.module.css'
-import { vodSlugToTitle, vodSlugToR2URL } from '../util'
+import { vodSlugToTitle } from '../util'
+
+const BUCKETS = {
+  days: 'https://days-media.ohn.sh',
+  overlay: 'https://vod.ohn.sh',
+} as const
+
+const thumbUrl = (assets: string[]) => {
+  const [thumb] = assets
+  return new URL(thumb, BUCKETS['overlay']).toString()
+}
+
+const basename = (path: string) => path.split('/').at(-1)
 
 export default function Playlist({
   slug,
@@ -13,35 +26,34 @@ export default function Playlist({
   slug: string[]
   inventory: Meta[]
 }) {
+  const pathname = usePathname()
   const sParams = useSearchParams()
   const v = sParams.get('v')
-  const url = vodSlugToR2URL(slug)
 
-  const thumbUrl = (name: string) =>
-    new URL(
-      `${name}+meta/thumb.webp`,
-      // `${name}+meta/${name.replace(/\.[^.]+$/, '.webp')}`,
-      url,
-    ).toString()
-
-  const vidUrl = (name: string) => new URL(name, url).toString()
+  const vidUrl = useMemo(() => {
+    const [, , year, month, ...rest] = pathname.split('/')
+    const key = `/${year}-${month}/${rest.join('/')}/${v}`
+    // this should be better
+    const tree = key.endsWith('hls') ? 'overlay' : 'days'
+    return new URL(key, BUCKETS[tree]).toString()
+  }, [v, pathname])
 
   return (
-    <section className={css.container}>
+    <article className={css.container}>
       <h2>{vodSlugToTitle(slug)}</h2>
       <ul>
         {inventory.map((item) => (
           <li
-            key={item.name}
+            key={item.key}
             className={item.meta_ffprobe.isPortrait ? 'portrait' : 'landscape'}
           >
-            <Link href={`?v=${item.name}`}>
-              <img alt="" src={thumbUrl(item.name)} />
+            <Link href={`?v=${basename(item.key)}`}>
+              <img alt="" src={thumbUrl(item.assets)} />
             </Link>
           </li>
         ))}
       </ul>
-      {v && <video autoPlay controls playsInline src={vidUrl(v)} />}
-    </section>
+      {v && <video autoPlay controls playsInline src={vidUrl} />}
+    </article>
   )
 }

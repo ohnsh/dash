@@ -1,3 +1,3 @@
 export default async function VOD() {
-  return <main>VOD route</main>
+  return <article>VOD route</article>
 }
