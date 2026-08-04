@@ -11,6 +11,9 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --color-accent: #4f96e5;
+  --color-online: var(--color-green-600);
+  --color-offline: var(--color-red-600);
+  --color-success: var(--color-green-600);
 }
 
 @media (prefers-color-scheme: dark) {

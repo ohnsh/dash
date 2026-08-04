@@ -60,7 +60,7 @@ export default function useStats({
     }
 
     es.addEventListener('init', (ev) => {
-      console.log(ev.data)
+      console.log('SSE init:', ev.data)
     })
 
     es.addEventListener('mmtx-hook', (ev) => {

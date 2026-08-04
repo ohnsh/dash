@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation'
 import type { ComponentPropsWithoutRef } from 'react'
-import type { Path, PathsList } from './dashd'
+import type { Path } from './dashd'
 import css from './hls-switch.module.css'
 import HlsVideo from './hls-video'
 import { pathMap, type StreamKey, isValidStream, cls } from './util'
@@ -14,18 +14,19 @@ export default function HlsSwitch({
   className,
   ...divProps
 }: {
-  items?: PathsList
+  items?: Path[]
 } & ComponentPropsWithoutRef<'div'>) {
   const searchParams = useSearchParams()
   let stream = searchParams.get('stream')
 
   const filteredItems = items.filter(
-    (item): item is Path & { name: StreamKey } => isValidStream(item.name),
+    (item): item is Path & { name: StreamKey; online: true } =>
+      isValidStream(item.name) && !!item.online,
   )
 
   if (!stream) {
     // default to first stream set to `online`
-    stream = filteredItems.find((item) => item.online)?.name ?? null
+    stream = filteredItems[0]?.name
   }
 
   if (!stream || !isValidStream(stream)) {

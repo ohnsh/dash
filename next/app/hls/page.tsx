@@ -16,9 +16,7 @@ export default async function (props: PageProps<'/hls'>) {
     return (
       <article className={css.container}>
         <HlsSwitch className="mx-auto" />
-        <section className="h-50 mt-4 text-center font-bold overflow-y-scroll">
-          Error reaching dashd
-        </section>
+        <section>Error reaching dashd</section>
       </article>
     )
     // throw error
@@ -32,7 +30,7 @@ export default async function (props: PageProps<'/hls'>) {
   return (
     <article className={css.container}>
       <HlsSwitch className="mx-auto" items={data.items} />
-      <section className="h-50 overflow-y-scroll">
+      <section>
         {stream && <HlsStats stream={stream} init={{ data, error }} />}
       </section>
     </article>

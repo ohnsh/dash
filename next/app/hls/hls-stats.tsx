@@ -1,9 +1,7 @@
 'use client'
 
-import DefList from '@/components/definition-list'
-import type { DashdEvent, UnpackResult } from './dashd'
+import type { DashdEvent, Path, UnpackResult } from './dashd'
 import css from './hls-stats.module.css'
-import { type Path, PathSchema } from './MtxPath'
 import useStats from './use-stats'
 import { isValidStream, pathMap } from './util'
 
@@ -37,28 +35,72 @@ export default function HlsStats({
     return <div>No data for {stream}</div>
   }
 
-  const parsedItem = PathSchema.parse(item)
+  // const parsedItem = PathSchema.parse(item)
 
   return (
     <div className={css.container}>
-      <StatDisplay item={parsedItem} />
-      <table>
-        <caption>Events</caption>
-        <tbody>
-          {events.map((event) => (
-            <StreamEvent key={event.id} event={event} />
-          ))}
-        </tbody>
-      </table>
+      <StatTable item={item} />
+      <EventTable events={events} />
     </div>
   )
 }
 
-function StatDisplay({ item }: { item: Path }) {
-  const numReaders = item.readers.length.toString()
-  const mbOut = formatMB(item.outboundBytes)
+function EventTable({ events }: { events: DashdEvent[] }) {
+  return (
+    <table>
+      <caption>Event Stream</caption>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Event</th>
+          <th>Stream</th>
+          <th>Protocol</th>
+        </tr>
+      </thead>
+      <tbody>
+        {events.map((event) => (
+          <StreamEvent key={event.id} event={event} />
+        ))}
+      </tbody>
+    </table>
+  )
+}
 
-  return <DefList entries={Object.entries({ numReaders, mbOut })} />
+function StatTable({ item }: { item: Path }) {
+  return (
+    <section className={css.statWrapper}>
+      <table>
+        <caption></caption>
+        <thead>
+          <tr>
+            <th>Stream</th>
+            <th>Readers</th>
+            <th>Sent (MB)</th>
+            <th>Status</th>
+            <th>Source</th>
+            <th>Tracks</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{item.name}</td>
+            <td>{item.readers?.length ?? 0}</td>
+            <td>{formatMB(item.outboundBytes ?? 0)}</td>
+            <td>
+              <span className={item.available ? 'text-online' : 'text-offline'}>
+                ⚫︎
+              </span>
+              <span className={item.online ? 'text-online' : 'text-offline'}>
+                ⚫︎
+              </span>
+            </td>
+            <td>{item.source?.type?.replace(/Conn$/i, '')}</td>
+            <td>{item.tracks2?.map((track) => track.codec).join(', ')}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  )
 }
 
 function StreamEvent({ event }: { event: DashdEvent }) {

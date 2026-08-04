@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import Sidebar from './sidebar'
 import './globals.css'
-import Footer from './footer.mdx'
+import FooterContent from './footer.mdx'
 import css from './layout.module.css'
 
 const geistSans = Geist({
@@ -43,7 +43,7 @@ export default function RootLayout({
           <main>{children}</main>
         </div>
         <footer>
-          <Footer />
+          <FooterContent />
         </footer>
       </body>
     </html>

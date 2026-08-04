@@ -26,6 +26,10 @@
     }
   }
 
+  footer {
+    padding-block: 2rem .5rem;
+  }
+
   footer ul {
     padding-inline: 0;
     font-weight: bold;
@@ -64,12 +68,13 @@
   main {
     flex-grow: 1;
     /* grow but prevent huge content like images from overflowing container. */
-    min-width: 0;
+    min-width: 50%;
   }
 }
 
 .sidebar {
-  flex: 0 0 250px;
+  flex: 0 1 250px;
+  min-width: fit-content;
   padding-block: 1rem;
 
   ul {

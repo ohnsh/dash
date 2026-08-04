@@ -1,6 +1,18 @@
 .container {
-  td {
-    padding-block: .1em;
-    padding-inline: 0 .7em;
+
+  table {
+    margin-inline: auto;
   }
+
+  td,
+  th {
+    white-space: nowrap;
+    padding-block: .1em;
+    padding-inline: 0 1.5em;
+  }
+}
+
+.statWrapper {
+  padding-block: 1rem;
+  overflow-inline: auto;
 }

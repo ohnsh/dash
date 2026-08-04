@@ -1,7 +1,7 @@
 import Hls from 'hls.js'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-const RETRY_PAUSE_MS = 2000
+const RETRY_PAUSE_MS = 40000
 
 const isIOS = () =>
   /iPad|iPhone|iPod/.test(navigator.platform) ||
@@ -66,7 +66,9 @@ export function useHls(streamUrl: string) {
           'stream makes use of codecs which are not compatible with this browser or operative system',
         )
       } else if (data.response && data.response.code === 404) {
-        console.error('stream not found, retrying in some seconds')
+        console.error(
+          `stream not found, retrying in ${RETRY_PAUSE_MS / 1000} seconds`,
+        )
       } else {
         console.error('Fatal hls.js error:', data.error)
       }
