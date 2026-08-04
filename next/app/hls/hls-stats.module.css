@@ -1,7 +1,12 @@
 .container {
+  padding-top: 1rem;
 
   table {
     margin-inline: auto;
+
+    caption {
+      display: none;
+    }
   }
 
   td,
@@ -12,7 +17,30 @@
   }
 }
 
-.statWrapper {
+.tableWrapper {
   padding-block: 1rem;
   overflow-inline: auto;
+}
+
+.tabInterface {
+  --faint: rgb(from var(--foreground) r g b / .5);
+
+  [role='tablist'] {
+    border-bottom: solid 1px var(--faint);
+
+    button {
+      font-weight: bold;
+      padding: .4em .7em;
+      cursor: pointer;
+      border-bottom: solid 2px transparent;
+
+      &[aria-selected] {
+        border-bottom-color: var(--foreground);
+      }
+    }
+  }
+
+  [role='tabpanel'] {
+    padding-top: .2rem;
+  }
 }
