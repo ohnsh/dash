@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import type { components, operations } from '@/mediamtx-openapi'
 
 export const DASHD_BASE = 'https://d.ohn.sh/mx'
@@ -16,7 +17,6 @@ export type ContentByStatus<
       : never
     : never
 
-export type PathsList = components['schemas']['PathList']['items']
 export type Path = components['schemas']['Path']
 
 export interface TResponse<T> extends Response {
@@ -74,3 +74,13 @@ export async function unpack<Op extends keyof operations>(
     throw response
   }
 }
+
+export const DashdEventSchema = z.object({
+  id: z.string(),
+  event: z.enum(['read', 'close']),
+  path: z.string(),
+  reader_type: z.string(),
+  timestamp: z.coerce.date(),
+})
+
+export type DashdEvent = z.infer<typeof DashdEventSchema>

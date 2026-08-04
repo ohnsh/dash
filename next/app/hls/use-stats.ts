@@ -1,97 +1,59 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { z } from 'zod'
+import { useCallback, useEffect, useState } from 'react'
 import {
   DASHD_BASE,
+  type DashdEvent,
+  DashdEventSchema,
   type ErrorType,
-  type SuccessType,
+  type Path,
   type UnpackResult,
   unpack,
 } from './dashd'
 
-const DashdEventSchema = z.object({
-  id: z.string(),
-  event: z.enum(['read', 'close']),
-  path: z.string(),
-  reader_type: z.string(),
-  timestamp: z.coerce.date(),
-})
+type DResult = UnpackResult<'pathsList'>
+type DError = ErrorType<'pathsList'> | 'non-api-error'
 
-export type DashdEvent = z.infer<typeof DashdEventSchema>
-
-type State =
-  | {
-      status: 'success'
-      data: NonNullable<SuccessType<'pathsList'>['items']>
-      error?: never
-    }
-  | { status: 'loading'; data?: never; error?: never }
-  | { status: 'init'; data?: never; error?: never }
-  | {
-      status: 'error'
-      error: ErrorType<'pathsList'> | 'non-api-error'
-      data?: never
-    }
-
-const resultToState = ({ data, error }: UnpackResult<'pathsList'>): State => {
-  if (data) {
-    return { status: 'success', data: data.items ?? [] }
-  } else {
-    return { status: 'error', error }
-  }
-}
-
-const initState = { status: 'init' } as const
-
-interface PromiseRef {
-  promise: Promise<UnpackResult<'pathsList'>>
-  stale: boolean
-}
-
-export default function useStats(
-  init?: UnpackResult<'pathsList'>,
-  endpoint = DASHD_BASE,
-): State & { events: DashdEvent[] } {
-  const [state, setState] = useState<State>(
-    init ? resultToState(init) : initState,
-  )
+export default function useStats({
+  init,
+  endpoint = `${DASHD_BASE}/paths/list`,
+  eventEndpoint = `${DASHD_BASE}/events`,
+}: {
+  init?: DResult
+  endpoint?: string
+  eventEndpoint?: string
+}) {
+  const [data, setData] = useState<Path[]>(init?.data?.items ?? [])
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<DError | null>(null)
   const [events, setEvents] = useState<DashdEvent[]>([])
-  const promiseRef = useRef<PromiseRef | null>(null)
-  const { status, data, error } = state
 
   const fetchStats = useCallback(() => {
-    if (promiseRef.current?.promise) {
-      promiseRef.current.stale = true
-      return
-    }
-
-    console.log('setting state to loading')
-    setState({ status: 'loading' })
-    const promise = fetch(`${endpoint}/paths/list`).then(unpack<'pathsList'>)
-    promise.then((result) => {
-      console.log('setting state to', resultToState(result))
-      setState(resultToState(result))
-      const stale = promiseRef.current?.stale ?? false
-      promiseRef.current = null
-      if (stale) {
-        fetchStats()
-      }
-    })
+    setLoading(true)
+    fetch(endpoint)
+      .then(unpack<'pathsList'>)
+      .then((result) => {
+        if (result.data) {
+          setData(result.data.items ?? [])
+          setError(null)
+        } else {
+          setError(result.error)
+        }
+      })
+      .catch((err) => {
+        setError(err)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }, [endpoint])
 
-  if (status === 'init' && !init) {
-    fetchStats()
-  }
+  useEffect(() => {
+    if (!init) {
+      fetchStats()
+    }
+  }, [init, fetchStats])
 
   useEffect(() => {
-    const es = new EventSource('https://d.ohn.sh/mx/events')
-
-    // es.addEventListener('message', (ev) => {
-    //   console.log(ev.data)
-    // })
-
-    // es.addEventListener('open', (ev) => {
-    //   console.log(ev)
-    // })
+    const es = new EventSource(eventEndpoint)
 
     es.onerror = (ev) => {
       console.error(ev)
@@ -117,23 +79,15 @@ export default function useStats(
 
       const event = DashdEventSchema.parse({ id, ...data })
 
-      setEvents((events) => [event, ...events])
+      // cap size of history
+      setEvents((prev) => [event, ...prev.slice(0, 49)])
       fetchStats()
     })
 
     return () => {
       es.close()
     }
-  }, [fetchStats])
+  }, [fetchStats, eventEndpoint])
 
-  if (status === 'loading') {
-    return { status, events }
-  }
-  if (status === 'success') {
-    return { status, data, events }
-  }
-  if (status === 'init') {
-    return { status, events }
-  }
-  return { status, error, events }
+  return { data, error, loading, events }
 }
