@@ -50,8 +50,14 @@ export const MetaSchema = z.object({
   assets: z.array(z.string()),
   key: z.string(),
   type: z.enum(['mp4', 'hls', 'mov']),
+  playlist: z.optional(z.string()),
   tree: z.enum(['days', 'overlay']),
   meta_exiftool: MetaExiftoolSchema,
   meta_ffprobe: MetaFfprobeSchema,
 })
-export type Meta = z.infer<typeof MetaSchema>
+
+export type Meta = z.infer<typeof MetaSchema> &
+  (
+    | { type: 'hls'; playlist: string }
+    | { type: 'mp4' | 'mov'; playlist?: never }
+  )

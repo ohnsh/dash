@@ -27,12 +27,6 @@
     }
   }
 
-  main {
-    /* body was formerly a flex container */
-    /* align-self: center; */
-    margin-block: 1rem;
-  }
-
   footer ul {
     padding-inline: 0;
     font-weight: bold;
@@ -56,7 +50,9 @@
   display: flex;
 
   main {
-    flex: 1 0 auto;
+    flex-grow: 1;
+    /* grow but prevent huge content like images from overflowing container. */
+    min-width: 0;
   }
 }
 

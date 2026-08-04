@@ -31,10 +31,14 @@ export default function Playlist({
   const v = sParams.get('v')
 
   const vidUrl = useMemo(() => {
+    if (!v) return undefined
+
     const [, , year, month, ...rest] = pathname.split('/')
     const key = `/${year}-${month}/${rest.join('/')}/${v}`
-    // this should be better
-    const tree = key.endsWith('hls') ? 'overlay' : 'days'
+
+    // should be searching through `inventory` to find the explicit value
+    const tree = key.endsWith('.m3u8') ? 'overlay' : 'days'
+
     return new URL(key, BUCKETS[tree]).toString()
   }, [v, pathname])
 
@@ -42,18 +46,27 @@ export default function Playlist({
     <article className={css.container}>
       <h2>{vodSlugToTitle(slug)}</h2>
       <ul>
-        {inventory.map((item) => (
-          <li
-            key={item.key}
-            className={item.meta_ffprobe.isPortrait ? 'portrait' : 'landscape'}
-          >
-            <Link href={`?v=${basename(item.key)}`}>
-              <img alt="" src={thumbUrl(item.assets)} />
-            </Link>
-          </li>
-        ))}
+        {inventory.map((item) => {
+          let itemV = basename(item.key)
+          if (item.type === 'hls') {
+            itemV = `${itemV}/${item.playlist}`
+          }
+          console.log(itemV)
+          return (
+            <li
+              key={item.key}
+              className={
+                item.meta_ffprobe.isPortrait ? 'portrait' : 'landscape'
+              }
+            >
+              <Link href={`?v=${itemV}`}>
+                <img alt="" src={thumbUrl(item.assets)} />
+              </Link>
+            </li>
+          )
+        })}
       </ul>
-      {v && <video autoPlay controls playsInline src={vidUrl} />}
+      {vidUrl && <video autoPlay controls playsInline src={vidUrl} />}
     </article>
   )
 }
