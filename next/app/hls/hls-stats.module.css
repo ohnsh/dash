@@ -4,6 +4,7 @@
   table {
     margin-inline: auto;
 
+    /* redundant because the tabs are labeled */
     caption {
       display: none;
     }
@@ -17,14 +18,19 @@
   }
 }
 
+/* tables don't really work as horizontal scroll containers, so wrap them in a regular
+   block container that will fill its container and contain overflow. */
 .tableWrapper {
   padding-block: 1rem;
   overflow-inline: auto;
 }
 
 .tabInterface {
+  /* since we can't set opacity on the border specifically, here's a color derived from
+     the foreground but with alpha set. */
   --faint: rgb(from var(--foreground) r g b / .5);
 
+  /* selected tab has a brighter, heavier border underneath */
   [role='tablist'] {
     border-bottom: solid 1px var(--faint);
 
@@ -32,6 +38,7 @@
       font-weight: bold;
       padding: .4em .7em;
       cursor: pointer;
+      /* maintain the extra space when not selected to prevent jumping */
       border-bottom: solid 2px transparent;
 
       &[aria-selected] {

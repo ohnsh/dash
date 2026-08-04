@@ -1,5 +1,6 @@
 .body {
   min-height: 100%;
+  /* something like 1280px */
   max-width: var(--container-6xl);
   margin-inline: auto;
   padding: .5rem 1rem;
@@ -13,6 +14,9 @@
       text-decoration: none;
     }
 
+    /* blinking cursor effect. */
+    /* another option is to put a big right-border on <code>, in which case the vertical
+       sizing and alignment would be automatic. */
     &::after {
       margin-inline-start: .1em;
       background: var(--foreground);
@@ -20,8 +24,11 @@
       height: 1.2cap;
       vertical-align: -.1cap;
       border-radius: .05cap;
+      /* required to be able to assign width and height */
       display: inline-block;
+      /* required for pseudo-element to exist */
       content: '';
+      /* slower than the real thing to make it less distracting */
       animation: blink .8s linear alternate infinite;
     }
   }
@@ -61,6 +68,12 @@
     opacity: .8;
   }
 }
+
+/* the middle row of the layout: sidebar and main content */
+/* TODO: this should all be converted to a grid in which the sidebar displaces the footer
+   so that the footer can align with the main content. */
+/* TODO: the grid needs to be responsive, hiding the sidebar behind a button at mobile
+   sizes. */
 
 .torso {
   display: flex;

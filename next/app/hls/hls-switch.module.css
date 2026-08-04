@@ -1,4 +1,5 @@
 .container {
+  /* we contain the <video>, too */
   max-width: 800px;
 
   ul {
@@ -19,6 +20,8 @@
       text-decoration: none;
       color: inherit;
 
+      /* highlight selected stream */
+      /* many tailwind values can be accessed via custom properties, a la OpenProps */
       &[aria-current='page'] {
         text-decoration: underline;
         color: var(--color-accent);

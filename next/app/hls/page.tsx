@@ -1,7 +1,6 @@
 import { DASHD_BASE, unpack } from './dashd'
 import HlsStats from './hls-stats'
 import HlsSwitch from './hls-switch'
-import css from './page.module.css'
 
 export default async function (props: PageProps<'/hls'>) {
   let { stream } = await props.searchParams
@@ -14,7 +13,7 @@ export default async function (props: PageProps<'/hls'>) {
 
   if (error) {
     return (
-      <article className={css.container}>
+      <article>
         <HlsSwitch className="mx-auto" />
         <section>Error reaching dashd</section>
       </article>
@@ -28,7 +27,7 @@ export default async function (props: PageProps<'/hls'>) {
   }
 
   return (
-    <article className={css.container}>
+    <article>
       <HlsSwitch className="mx-auto" items={data.items} />
       <section>
         {stream && <HlsStats stream={stream} init={{ data, error }} />}
