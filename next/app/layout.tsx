@@ -35,10 +35,7 @@ export default function RootLayout({
         <header>
           <h1>
             <a href="/">
-              <code>d</code>
-              <code>a</code>
-              <code>s</code>
-              <code>h</code>
+              <code>dash</code>
             </a>
           </h1>
         </header>

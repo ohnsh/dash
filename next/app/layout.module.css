@@ -13,17 +13,16 @@
       text-decoration: none;
     }
 
-    code {
-      margin-inline: 1px;
-      text-underline-offset: .2rem;
-      text-decoration: underline;
-    }
-
     &::after {
-      margin-inline: 1px;
-      text-underline-offset: .2rem;
-      text-decoration: underline;
-      content: '_';
+      margin-inline-start: .1em;
+      background: var(--foreground);
+      width: .65cap;
+      height: 1.2cap;
+      vertical-align: -.1cap;
+      border-radius: .05cap;
+      display: inline-block;
+      content: '';
+      animation: blink .8s linear alternate infinite;
     }
   }
 
@@ -46,6 +45,19 @@
   }
 }
 
+@keyframes blink {
+
+  from,
+  45% {
+    opacity: 0;
+  }
+
+  55%,
+  to {
+    opacity: .8;
+  }
+}
+
 .torso {
   display: flex;
 
@@ -58,5 +70,15 @@
 
 .sidebar {
   flex: 0 0 250px;
-  backdrop-filter: brightness(1.3);
+  padding-block: 1rem;
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  a {
+    text-decoration: none;
+    font-weight: 600;
+  }
 }
