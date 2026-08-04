@@ -5,7 +5,7 @@
   padding: .5rem 1rem;
 
   header h1 {
-    font-size: var(--text-3xl);
+    font-size: var(--text-2xl);
     font-weight: bold;
 
     a {

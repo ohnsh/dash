@@ -1,0 +1,6 @@
+.container {
+  td {
+    padding-block: .1em;
+    padding-inline: 0 .7em;
+  }
+}

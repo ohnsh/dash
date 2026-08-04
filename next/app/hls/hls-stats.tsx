@@ -2,7 +2,9 @@
 
 import DefList from '@/components/definition-list'
 import type { UnpackResult } from './dashd'
-import useStats from './use-stats'
+import css from './hls-stats.module.css'
+import { type Path, PathSchema } from './MtxPath'
+import useStats, { type DashdEvent } from './use-stats'
 import { isValidStream, pathMap } from './util'
 
 const format = (num: number) =>
@@ -33,22 +35,39 @@ export default function HlsStats({
     return <div>Invalid stream {stream}</div>
   }
 
-  console.log(`Stream: ${stream}`)
-
   const item = data.find(({ name }) => name === pathMap[stream])
-  const numReaders = (item?.readers?.length ?? 0).toString()
-  const mbOut = toMB(item?.outboundBytes ?? 0)
+
+  if (!item) {
+    return <div>No data for {stream}</div>
+  }
+
+  const parsedItem = PathSchema.parse(item)
+
+  const numReaders = parsedItem.readers.length.toString()
+  const mbOut = toMB(parsedItem.outboundBytes)
 
   return (
-    <div>
+    <div className={css.container}>
       <DefList entries={Object.entries({ numReaders, mbOut })} />
-      <ul>
+      <table>
+        <caption>Events</caption>
         {events.map((event) => (
-          <li key={event.id}>
-            <DefList entries={Object.entries(event.data)} />
-          </li>
+          <StreamEvent key={event.id} event={event} />
         ))}
-      </ul>
+      </table>
     </div>
   )
+}
+
+function StreamEvent({ event }: { event: DashdEvent }) {
+  const protocol = event.reader_type.replace(/session$/i, '')
+  return (
+    <tr>
+      <td>{event.timestamp.toLocaleTimeString('en-US', { hour12: false })}</td>
+      <td>{event.event}</td>
+      <td>{event.path}</td>
+      <td>{protocol}</td>
+    </tr>
+  )
+  // <DefList entries={Object.entries(event.data)} />
 }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { z } from 'zod'
 import {
   DASHD_BASE,
   type ErrorType,
@@ -7,10 +8,15 @@ import {
   unpack,
 } from './dashd'
 
-interface DashdEvent {
-  id: string
-  data: Record<string, string>
-}
+const DashdEventSchema = z.object({
+  id: z.string(),
+  event: z.enum(['read', 'close']),
+  path: z.string(),
+  reader_type: z.string(),
+  timestamp: z.coerce.date(),
+})
+
+export type DashdEvent = z.infer<typeof DashdEventSchema>
 
 type State =
   | {
@@ -109,7 +115,9 @@ export default function useStats(
       // shorter than crypto.randomUUID output
       const id = crypto.getRandomValues(new Uint8Array(8)).toBase64()
 
-      setEvents((events) => [{ id, data }, ...events])
+      const event = DashdEventSchema.parse({ id, ...data })
+
+      setEvents((events) => [event, ...events])
       fetchStats()
     })
 
