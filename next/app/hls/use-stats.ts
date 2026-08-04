@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   DASHD_BASE,
   type ErrorType,
@@ -19,6 +19,7 @@ type State =
       error?: never
     }
   | { status: 'loading'; data?: never; error?: never }
+  | { status: 'init'; data?: never; error?: never }
   | {
       status: 'error'
       error: ErrorType<'pathsList'> | 'non-api-error'
@@ -33,12 +34,12 @@ const resultToState = ({ data, error }: UnpackResult<'pathsList'>): State => {
   }
 }
 
-let promise: Promise<Response>
+const initState = { status: 'init' } as const
 
-const initState = { status: 'loading' } as const
-
-// type Test2 = { [T in Operation]: Promise<UnpackResult<T>> }
-// const promiseMap = new Map<string, Promise<UnpackResult<'pathsList'>>>()
+interface PromiseRef {
+  promise: Promise<UnpackResult<'pathsList'>>
+  stale: boolean
+}
 
 export default function useStats(
   init?: UnpackResult<'pathsList'>,
@@ -48,17 +49,31 @@ export default function useStats(
     init ? resultToState(init) : initState,
   )
   const [events, setEvents] = useState<DashdEvent[]>([])
+  const promiseRef = useRef<PromiseRef | null>(null)
   const { status, data, error } = state
 
-  function wireUp(promise: Promise<Response>) {
-    promise.then(unpack<'pathsList'>).then((result) => {
-      setState(resultToState(result))
-    })
-  }
+  const fetchStats = useCallback(() => {
+    if (promiseRef.current?.promise) {
+      promiseRef.current.stale = true
+      return
+    }
 
-  if (!promise) {
-    promise = fetch(`${endpoint}/paths/list`)
-    wireUp(promise)
+    console.log('setting state to loading')
+    setState({ status: 'loading' })
+    const promise = fetch(`${endpoint}/paths/list`).then(unpack<'pathsList'>)
+    promise.then((result) => {
+      console.log('setting state to', resultToState(result))
+      setState(resultToState(result))
+      const stale = promiseRef.current?.stale ?? false
+      promiseRef.current = null
+      if (stale) {
+        fetchStats()
+      }
+    })
+  }, [endpoint])
+
+  if (status === 'init' && !init) {
+    fetchStats()
   }
 
   useEffect(() => {
@@ -91,22 +106,26 @@ export default function useStats(
       params.delete('reader_id')
 
       const data = Object.fromEntries(params.entries())
-      // just putzing around. Not as long as crypto.randomUUID output
+      // shorter than crypto.randomUUID output
       const id = crypto.getRandomValues(new Uint8Array(8)).toBase64()
 
       setEvents((events) => [{ id, data }, ...events])
+      fetchStats()
     })
 
     return () => {
       es.close()
     }
-  }, [])
+  }, [fetchStats])
 
   if (status === 'loading') {
     return { status, events }
   }
   if (status === 'success') {
     return { status, data, events }
+  }
+  if (status === 'init') {
+    return { status, events }
   }
   return { status, error, events }
 }

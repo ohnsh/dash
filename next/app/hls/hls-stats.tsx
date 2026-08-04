@@ -3,6 +3,7 @@
 import DefList from '@/components/definition-list'
 import type { UnpackResult } from './dashd'
 import useStats from './use-stats'
+import { isValidStream, pathMap } from './util'
 
 const format = (num: number) =>
   num.toLocaleString(undefined, {
@@ -25,8 +26,16 @@ export default function HlsStats({
   if (status === 'loading') {
     return <div>Loading...</div>
   }
+  if (status === 'init') {
+    return <div>Loading...</div>
+  }
+  if (!isValidStream(stream)) {
+    return <div>Invalid stream {stream}</div>
+  }
 
-  const item = data.find(({ name }) => name === stream)
+  console.log(`Stream: ${stream}`)
+
+  const item = data.find(({ name }) => name === pathMap[stream])
   const numReaders = (item?.readers?.length ?? 0).toString()
   const mbOut = toMB(item?.outboundBytes ?? 0)
 

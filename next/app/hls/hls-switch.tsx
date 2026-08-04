@@ -5,22 +5,9 @@ import type { ComponentPropsWithoutRef } from 'react'
 import type { Path, PathsList } from './dashd'
 import css from './hls-switch.module.css'
 import HlsVideo from './hls-video'
-
-const pathMap = {
-  wuuk: 'wuuk-patch',
-  wyze1: 'wyze1-patch',
-  desk: 'desk',
-} as const
+import { pathMap, type StreamKey, isValidStream, cls } from './util'
 
 const defaultItems = [{ name: 'desk' }, { name: 'wuuk' }, { name: 'wyze1' }]
-
-type StreamKey = keyof typeof pathMap
-
-const isValidStream = (name: unknown): name is StreamKey =>
-  typeof name === 'string' && Object.hasOwn(pathMap, name)
-
-const cls = (...classes: Array<string | string[] | undefined>) =>
-  classes.flat().filter(Boolean).join(' ')
 
 export default function HlsSwitch({
   items = defaultItems,
