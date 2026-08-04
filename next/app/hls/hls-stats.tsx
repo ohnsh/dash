@@ -32,17 +32,13 @@ export default function HlsStats({
 
   const item = data.find(({ name }) => name === pathMap[stream])
 
-  if (!item) {
-    return <div>No data for {stream}</div>
-  }
-
   // const parsedItem = PathSchema.parse(item)
 
   return (
     <div className={css.container}>
       <TabInterface>
         <Tab name="Stats">
-          <StatTable item={item} />
+          <StatTable data={data} activeStream={stream} />
         </Tab>
         <Tab name="Events">
           <EventTable events={events} />
@@ -75,7 +71,15 @@ function EventTable({ events }: { events: DashdEvent[] }) {
   )
 }
 
-function StatTable({ item }: { item: Path }) {
+function StatTable({
+  data,
+  activeStream,
+}: {
+  data: Path[]
+  activeStream: string
+}) {
+  const filteredData = data.filter((item) => !item.name?.endsWith('-rec'))
+
   return (
     <section className={css.tableWrapper}>
       <table>
@@ -91,24 +95,58 @@ function StatTable({ item }: { item: Path }) {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>{item.name}</td>
-            <td>{item.readers?.length ?? 0}</td>
-            <td>{formatMB(item.outboundBytes ?? 0)}</td>
-            <td>
-              <span className={item.available ? 'text-online' : 'text-offline'}>
-                ⚫︎
-              </span>
-              <span className={item.online ? 'text-online' : 'text-offline'}>
-                ⚫︎
-              </span>
-            </td>
-            <td>{item.source?.type?.replace(/(Conn|Session)$/i, '')}</td>
-            <td>{item.tracks2?.map((track) => track.codec).join(', ')}</td>
-          </tr>
+          {filteredData.map((item) => (
+            <StatRow key={item.name} item={item} />
+          ))}
         </tbody>
       </table>
     </section>
+  )
+}
+
+function formatSourceType(type: string) {
+  if (type.endsWith('Source')) {
+    const proto = type.replace(/Source$/, '').toUpperCase()
+    return `${proto} / server`
+  }
+  if (type.endsWith('Conn')) {
+    const proto = type.replace(/Conn$/, '').toUpperCase()
+    return `${proto} / client`
+  }
+  if (type.endsWith('Session')) {
+    const proto = type.replace(/Session$/, '').toUpperCase()
+    return `${proto} / client`
+  }
+  return type
+}
+
+function StatRow({ item }: { item: Path }) {
+  const formattedType = item.source?.type
+    ? formatSourceType(item.source.type)
+    : ''
+
+  return (
+    <tr>
+      <td>{item.name}</td>
+      <td>{item.readers?.length ?? 0}</td>
+      <td>{formatMB(item.outboundBytes ?? 0)}</td>
+      <td>
+        <span
+          className={item.available ? 'text-online' : 'text-offline'}
+          title={item.available ? 'Available' : 'Not available'}
+        >
+          ⚫︎
+        </span>
+        <span
+          className={item.online ? 'text-online' : 'text-offline'}
+          title={item.available ? 'Online' : 'Not online'}
+        >
+          ⚫︎
+        </span>
+      </td>
+      <td>{formattedType}</td>
+      <td>{item.tracks2?.map((track) => track.codec).join(', ')}</td>
+    </tr>
   )
 }
 
