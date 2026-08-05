@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import React from 'react'
+import { StatusIndicator } from '@/components/status-indicator'
 import { DASHD_BASE, type Path, type PathResponse } from './hls/dashd'
 import { isValidStream } from './hls/util'
 import css from './sidebar.module.css'
@@ -53,20 +54,10 @@ async function StreamMenu() {
 }
 
 function StreamMenuItem({ item }: { item: Path }) {
-  // classes `text-online` and `text-offline` made available through tailwind @theme
-  // config.
-  const indicator = (
-    <span
-      className={item.online ? 'text-online' : 'text-offline'}
-      title={item.online ? 'Available' : 'Not available'}
-    >
-      ⚫︎
-    </span>
-  )
-
   return (
     <li>
-      <Link href={`/hls?stream=${item.name}`}>{item.name}</Link> {indicator}
+      <Link href={`/hls?stream=${item.name}`}>{item.name}</Link>{' '}
+      <StatusIndicator online={item.online ?? false} size="small" />
     </li>
   )
 }

@@ -1,5 +1,6 @@
 'use client'
 
+import { StatusIndicator } from '@/components/status-indicator'
 import type { DashdEvent, Path, UnpackResult } from './dashd'
 import css from './hls-stats.module.css'
 import { Tab, TabInterface } from './tab-interface'
@@ -131,18 +132,13 @@ function StatRow({ item }: { item: Path }) {
       <td>{item.readers?.length ?? 0}</td>
       <td>{formatMB(item.outboundBytes ?? 0)}</td>
       <td>
-        <span
-          className={item.available ? 'text-online' : 'text-offline'}
-          title={item.available ? 'Available' : 'Not available'}
-        >
-          ⚫︎
-        </span>
-        <span
-          className={item.online ? 'text-online' : 'text-offline'}
-          title={item.available ? 'Online' : 'Not online'}
-        >
-          ⚫︎
-        </span>
+        <StatusIndicator
+          online={item.available ?? false}
+          onText="Available"
+          offText="Not available"
+          size="medium"
+        />
+        <StatusIndicator online={item.online ?? false} size="medium" />
       </td>
       <td>{formattedType}</td>
       <td>{item.tracks2?.map((track) => track.codec).join(', ')}</td>
