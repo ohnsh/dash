@@ -30,7 +30,7 @@ export const vodSlugToComponents = (vodSlug: string[]) => {
   // check on the above because it's sort of an accident of JavaScript history
   if (utcDate.getUTCDate() !== Number(day)) {
     throw new Error(
-      'Date constructor unexpectedly returned a non-midnight-UTC date, possibly because it parsed the slug using local time.',
+      'Date constructor unexpectedly returned the wrong date, possibly because it parsed the slug using local time.',
     )
   }
 
@@ -42,8 +42,12 @@ export const vodSlugToComponents = (vodSlug: string[]) => {
 
 export const vodSlugToTitle = (vodSlug: string[]) => {
   const { utcDate, category } = vodSlugToComponents(vodSlug)
+  const dateString = utcDate.toLocaleDateString(undefined, {
+    dateStyle: 'medium',
+    timeZone: 'utc',
+  })
 
-  // `timeZone` option is crucial to ensure that the day in the slug
+  // `timeZone: 'utc'` is crucial to ensure that the day in the slug
   // is the one displayed.
-  return `${utcDate.toLocaleDateString(undefined, { dateStyle: 'full', timeZone: 'utc' })} — ${category}`
+  return `${dateString} — ${category}`
 }

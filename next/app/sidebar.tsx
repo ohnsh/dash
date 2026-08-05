@@ -2,7 +2,7 @@ import Link from 'next/link'
 import React from 'react'
 import { DASHD_BASE, type Path, type PathResponse } from './hls/dashd'
 import { isValidStream } from './hls/util'
-import css from './layout.module.css'
+import css from './sidebar.module.css'
 import InventoryList from './vod/inv-list'
 
 export default function Sidebar() {

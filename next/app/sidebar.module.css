@@ -1,0 +1,13 @@
+.sidebar {
+  padding-block: 1rem;
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  a {
+    text-decoration: none;
+    font-weight: 600;
+  }
+}
