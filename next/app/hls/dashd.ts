@@ -18,6 +18,7 @@ export type ContentByStatus<
     : never
 
 export type Path = components['schemas']['Path']
+export type PathResponse = ContentByStatus<'pathsList', 200>
 
 export interface TResponse<T> extends Response {
   json: () => Promise<T>
