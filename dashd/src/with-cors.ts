@@ -1,4 +1,4 @@
-import type { default as Bun, BunRequest, Server } from 'bun'
+import type { BunRequest, Server } from 'bun'
 
 const ALLOWED_ORIGINS = new Set([
   'http://localhost:3000',
@@ -20,6 +20,9 @@ export default function withCORS<T>(handler: BunHandler<T>): BunHandler<T> {
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     }
+
+    console.log('Request IP:', server.requestIP(req))
+    console.log('X-Forwarded-For:', req.headers.get('X-Forwarded-For'))
 
     // Automatically handle preflight requests
     if (req.method === 'OPTIONS') {
