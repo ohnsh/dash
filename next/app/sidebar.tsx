@@ -1,49 +1,72 @@
 import Link from 'next/link'
-import { DASHD_BASE, type PathResponse } from './hls/dashd'
+import React from 'react'
+import { DASHD_BASE, type Path, type PathResponse } from './hls/dashd'
 import { isValidStream } from './hls/util'
 import css from './layout.module.css'
-import Content from './sidebar.mdx'
 import InventoryList from './vod/inv-list'
 
-export default async function Sidebar() {
+export default function Sidebar() {
+  return (
+    <aside className={css.sidebar}>
+      <nav>
+        <h2>Live Streams</h2>
+        <React.Suspense fallback={<div>loading stream menu...</div>}>
+          <StreamMenu />
+        </React.Suspense>
+
+        <h2>VOD playlists</h2>
+        <React.Suspense fallback={<div>loading VOD inventory...</div>}>
+          <InventoryList />
+        </React.Suspense>
+      </nav>
+    </aside>
+  )
+}
+
+async function StreamMenu() {
+  // test fallback content
+  // await new Promise((resolve) => setTimeout(resolve, 1000))
+
   const resp = await fetch(`${DASHD_BASE}/paths/list`)
-  let streamMenu: React.ReactElement
   if (!resp.ok) {
-    streamMenu = (
+    return (
       <div>
         Error: {resp.status} {resp.statusText}
       </div>
     )
-  } else {
-    const { items } = (await resp.json()) as PathResponse
-    if (!items || items.length === 0) {
-      streamMenu = <div>No streams found</div>
-    } else {
-      streamMenu = (
-        <ul>
-          {items
-            .filter((item) => isValidStream(item.name))
-            .map((item) => (
-              <li key={item.name}>
-                <Link href={`/hls?stream=${item.name}`}>{item.name}</Link>
-              </li>
-            ))}
-        </ul>
-      )
-    }
   }
 
-  let vodMenu = (
-    <ul>
-      <li>VOD Menu</li>
-    </ul>
+  const { items } = (await resp.json()) as PathResponse
+  if (!items || items.length === 0) {
+    return <div>No streams found</div>
+  }
+
+  return (
+    <menu>
+      {items
+        .filter((item) => isValidStream(item.name))
+        .map((item) => (
+          <StreamMenuItem key={item.name} item={item} />
+        ))}
+    </menu>
+  )
+}
+
+function StreamMenuItem({ item }: { item: Path }) {
+  // classes `text-online` and `text-offline` made available through tailwind @theme
+  // config.
+  const indicator = (
+    <span
+      className={item.online ? 'text-online' : 'text-offline'}
+      title={item.online ? 'Available' : 'Not available'}
+    >
+      ⚫︎
+    </span>
   )
 
   return (
-    <aside className={css.sidebar}>
-      <Content />
-      {streamMenu}
-      <InventoryList />
-    </aside>
+    <li>
+      <Link href={`/hls?stream=${item.name}`}>{item.name}</Link> {indicator}
+    </li>
   )
 }

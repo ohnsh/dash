@@ -2,6 +2,9 @@ import Link from 'next/link'
 import { getRootList, invPathToSlug, vodSlugToTitle } from './util'
 
 export default async function InventoryList() {
+  // test fallback content
+  // await new Promise((resolve) => setTimeout(resolve, 1000))
+
   const list = await getRootList()
 
   return (
