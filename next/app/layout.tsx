@@ -30,21 +30,21 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className={`${css.body}`}>
-        <header>
-          <h1>
-            <a href="/">
-              <code>dash</code>
-            </a>
-          </h1>
-        </header>
-        <div className={css.torso}>
+      <body className={css.body}>
+        <div className={css.container}>
+          <header>
+            <h1>
+              <a href="/">
+                <code>dash</code>
+              </a>
+            </h1>
+          </header>
           <Sidebar />
           <main>{children}</main>
+          <footer>
+            <FooterContent />
+          </footer>
         </div>
-        <footer>
-          <FooterContent />
-        </footer>
       </body>
     </html>
   )

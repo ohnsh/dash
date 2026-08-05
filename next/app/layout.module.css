@@ -1,9 +1,40 @@
+/* main grid layout */
+.container {
+  display: grid;
+
+  grid-template-columns: minmax(max-content, 220px) 1fr;
+  grid-template-rows: auto 1fr auto;
+
+  header {
+    grid-column: 1 / 3;
+    grid-row: 1 / 2;
+  }
+
+  footer {
+    grid-column: 2 / 3;
+    grid-row: 3 / 4;
+  }
+
+  main {
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+  }
+
+  .sidebar {
+    grid-column: 1 / 2;
+    grid-row: 2 / 4;
+  }
+}
+
 .body {
   min-height: 100%;
   /* something like 1280px */
   max-width: var(--container-6xl);
   margin-inline: auto;
   padding: .5rem 1rem;
+}
+
+.container {
 
   header h1 {
     font-size: var(--text-2xl);
@@ -30,6 +61,23 @@
       content: '';
       /* slower than the real thing to make it less distracting */
       animation: blink .8s linear alternate infinite;
+    }
+  }
+
+  /* the middle row of the layout: sidebar and main content */
+  /* TODO: the grid needs to be responsive, hiding the sidebar behind a button at mobile
+   sizes. */
+  .sidebar {
+    padding-block: 1rem;
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    a {
+      text-decoration: none;
+      font-weight: 600;
     }
   }
 
@@ -66,37 +114,5 @@
   55%,
   to {
     opacity: .8;
-  }
-}
-
-/* the middle row of the layout: sidebar and main content */
-/* TODO: this should all be converted to a grid in which the sidebar displaces the footer
-   so that the footer can align with the main content. */
-/* TODO: the grid needs to be responsive, hiding the sidebar behind a button at mobile
-   sizes. */
-
-.torso {
-  display: flex;
-
-  main {
-    flex-grow: 1;
-    /* grow but prevent huge content like images from overflowing container. */
-    min-width: 50%;
-  }
-}
-
-.sidebar {
-  flex: 0 1 250px;
-  min-width: fit-content;
-  padding-block: 1rem;
-
-  ul {
-    list-style: none;
-    padding: 0;
-  }
-
-  a {
-    text-decoration: none;
-    font-weight: 600;
   }
 }
