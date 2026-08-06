@@ -1,17 +1,24 @@
 'use client'
 
+const HAMBURGER = '☰'
+
 export default function Header({
+  isSidebarOpen,
   toggleSidebar,
 }: {
+  isSidebarOpen: boolean
   toggleSidebar: () => void
 }) {
   return (
-    <header>
+    <header className="flex justify-between">
       <h1>
         <a href="/">
           <code>dash</code>
         </a>
       </h1>
+      <button type="button" onClick={toggleSidebar}>
+        {isSidebarOpen ? 'close ✕' : `menu ${HAMBURGER}`}
+      </button>
     </header>
   )
 }

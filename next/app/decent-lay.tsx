@@ -12,12 +12,23 @@ export default function DecentLay({
   sidebar: React.ReactElement
   children: React.ReactNode
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isSidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <div className={css.container}>
-      <Header toggleSidebar={() => setSidebarOpen((prev) => !prev)} />
-      <aside className={sidebarOpen ? css.sidebarOpen : ''}>{sidebar}</aside>
+      <Header
+        isSidebarOpen={isSidebarOpen}
+        toggleSidebar={() => setSidebarOpen((prev) => !prev)}
+      />
+      {isSidebarOpen && (
+        <button
+          type="button"
+          className={css.backdrop}
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Close menu"
+        ></button>
+      )}
+      <aside className={isSidebarOpen ? css.sidebarOpen : ''}>{sidebar}</aside>
       <main>{children}</main>
       <footer>
         <FooterContent />
