@@ -2,6 +2,7 @@ import type { BunRequest, Server } from 'bun'
 
 const ALLOWED_ORIGINS = new Set([
   'http://localhost:3000',
+  'http://mak.local:3000', // when testing from phone
   'https://dash.ohn.sh',
 ])
 
@@ -21,8 +22,9 @@ export default function withCORS<T>(handler: BunHandler<T>): BunHandler<T> {
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     }
 
-    console.log('Request IP:', server.requestIP(req))
-    console.log('X-Forwarded-For:', req.headers.get('X-Forwarded-For'))
+    // logs pile up incredibly fast
+    // console.log('Request IP:', server.requestIP(req))
+    // console.log('X-Forwarded-For:', req.headers.get('X-Forwarded-For'))
 
     // Automatically handle preflight requests
     if (req.method === 'OPTIONS') {
