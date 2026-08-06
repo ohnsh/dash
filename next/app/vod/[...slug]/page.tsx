@@ -19,7 +19,9 @@ export default async function Vod({
   const inventory = await fetch(invURL)
     .then((r) => r.json() as Promise<Record<string, Meta>>)
     .then((j) =>
-      Object.values(j).map((i) => (i.type === 'hls' ? i : MetaSchema.parse(i))),
+      Object.values(j).map((i) =>
+        i.type === 'hls' ? i : (MetaSchema.parse(i) as Meta),
+      ),
     )
 
   return <Playlist slug={slug} inventory={inventory} />

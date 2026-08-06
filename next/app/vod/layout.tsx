@@ -3,7 +3,7 @@
 export default async function VODLayout({
   children,
 }: {
-  children: React.ReactElement
+  children: React.ReactNode
 }) {
   return <div className="vod-layout">{children}</div>
   // <section className="sidebar">
