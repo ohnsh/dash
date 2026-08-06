@@ -55,8 +55,9 @@ export default function useStats({
   useEffect(() => {
     const es = new EventSource(eventEndpoint)
 
-    es.onerror = (ev) => {
-      console.error(ev)
+    es.onerror = (_ev) => {
+      // happens regularly; seemingly always an empty object:
+      // console.error(ev)
     }
 
     es.addEventListener('init', (ev) => {

@@ -12,7 +12,7 @@
   --font-mono: var(--font-geist-mono);
   --color-accent: #4f96e5;
   --color-online: var(--color-green-600);
-  --color-offline: var(--color-red-600);
+  --color-offline: var(--color-gray-600);
   --color-success: var(--color-green-600);
 }
 
@@ -26,7 +26,6 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 a {

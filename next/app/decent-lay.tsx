@@ -2,22 +2,22 @@
 
 import { useState } from 'react'
 import FooterContent from './footer.mdx'
+import Header from './header'
 import css from './layout.module.css'
-import Sidebar from './sidebar'
 
-export default function DecentLay({ children }: { children: React.ReactNode }) {
+export default function DecentLay({
+  sidebar,
+  children,
+}: {
+  sidebar: React.ReactElement
+  children: React.ReactNode
+}) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <div className={css.container}>
-      <header>
-        <h1>
-          <a href="/">
-            <code>dash</code>
-          </a>
-        </h1>
-      </header>
-      <Sidebar />
+      <Header toggleSidebar={() => setSidebarOpen((prev) => !prev)} />
+      <aside className={sidebarOpen ? css.sidebarOpen : ''}>{sidebar}</aside>
       <main>{children}</main>
       <footer>
         <FooterContent />
