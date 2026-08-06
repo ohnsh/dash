@@ -1,6 +1,13 @@
 .sidebar {
   padding-block: 1rem;
 
+  h2 {
+    font-weight: bold;
+    font-family: var(--font-mono);
+    font-size: var(--text-lg);
+    margin-top: 1rem;
+  }
+
   ul {
     list-style: none;
     padding: 0;

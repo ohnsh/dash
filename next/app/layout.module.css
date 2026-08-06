@@ -115,6 +115,7 @@
 
   >header h1 {
     font-size: var(--text-2xl);
+    font-family: var(--font-mono);
     font-weight: bold;
 
     a {

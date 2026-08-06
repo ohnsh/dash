@@ -12,9 +12,7 @@ export default function Header({
   return (
     <header className="flex justify-between">
       <h1>
-        <a href="/">
-          <code>dash</code>
-        </a>
+        <a href="/">dash</a>
       </h1>
       <button type="button" onClick={toggleSidebar}>
         {isSidebarOpen ? 'close ✕' : `menu ${HAMBURGER}`}
