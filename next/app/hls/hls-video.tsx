@@ -12,9 +12,8 @@ export default function ClientStream({ streamUrl }: { streamUrl: string }) {
       autoPlay
       playsInline
       muted
-      style={{ width: '100%', aspectRatio: '16/9' }}
-      // width="640"
-      // height="360"
+      // needs to be dynamic based on isPortrait
+      style={{ aspectRatio: '16/9' }}
     ></video>
   )
 }

@@ -1,6 +1,6 @@
 /* main grid layout */
 .container {
-  --sidebar-width: 250px;
+  --sidebar-width: 230px;
 
   display: grid;
 
@@ -20,6 +20,12 @@
 
   >main {
     grid-row: 2;
+
+    /* a gem. Without it, large media content will cause the entire grid column to
+    expand and overflow the container. Other fixes:
+     - min-width: 0
+     - grid-template-columns: minmax(0, 1fr) */
+    overflow-x: hidden;
   }
 
   >footer {

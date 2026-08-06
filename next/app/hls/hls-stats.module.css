@@ -23,5 +23,5 @@
    block container that will fill its container and contain overflow. */
 .tableWrapper {
   padding-block: 1rem;
-  overflow-inline: auto;
+  overflow-x: auto;
 }

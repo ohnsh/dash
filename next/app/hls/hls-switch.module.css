@@ -1,6 +1,10 @@
 .container {
   /* we contain the <video>, too */
-  max-width: 800px;
+  /* max-width: 800px; */
+
+  video {
+    width: 100%;
+  }
 
   ul {
     padding: 1rem .5rem;
