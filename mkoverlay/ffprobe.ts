@@ -7,8 +7,8 @@ const ffprobeSchema = z.object({
       width: z.coerce.number(),
       height: z.coerce.number(),
       rotation: z.coerce.number().default(0),
-      duration: z.optional(z.coerce.number()),
-      nb_frames: z.optional(z.coerce.number()),
+      duration: z.coerce.number().optional(),
+      nb_frames: z.coerce.number().optional(),
       r_frame_rate: z.preprocess((val) => {
         if (typeof val !== 'string') return val
         const [numer, denom] = val.split('/')
@@ -27,7 +27,7 @@ const ffprobeSchema = z.object({
 
 type FFprobeOutput = z.infer<typeof ffprobeSchema>
 
-type FFprobeMetadata = FFprobeOutput['streams'][number] & {
+export type FFprobeMetadata = FFprobeOutput['streams'][number] & {
   isPortrait: boolean
   isHDR: boolean
 }

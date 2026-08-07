@@ -2,40 +2,27 @@
 
 import fs from 'node:fs/promises'
 import { basename, dirname, join, resolve } from 'node:path'
-import { $ } from 'bun'
-import exiftool from './exiftool'
-import ffprobe from './ffprobe'
+import {
+  getMetadata,
+  getVideoType,
+  isVideoFile,
+  type MetadataBase,
+  mkthumb,
+} from './util'
 
 const PREFIX = '/Volumes/Media'
-
-const isVideoFile = (name: string) => /\.(mov|mp4)$/i.test(name)
 const isHlsDir = (name: string) => /\.hls$/i.test(name)
-const getType = (name: string) => name.match(/\.([^.]+)$/)?.[1]
 
-interface MetadataBase {
+interface MetadataDerived<T extends MetadataBase['type']> extends MetadataBase {
   key: string
   tree: string
-  type: 'mp4' | 'mov' | 'hls'
-  meta_exiftool: Awaited<ReturnType<typeof exiftool>>
-  meta_ffprobe: Awaited<ReturnType<typeof ffprobe>>
+  type: T
 }
-
-interface MetadataHLS extends MetadataBase {
-  type: 'hls'
+interface MetadataHLS extends MetadataDerived<'hls'> {
   playlist: string
 }
-
-interface MetadataVideo extends MetadataBase {
-  type: 'mp4' | 'mov'
-  playlist?: never
-}
-
-type Metadata = MetadataHLS | MetadataVideo
+type Metadata = MetadataHLS | MetadataDerived<'mp4' | 'mov'>
 type Inventory = Metadata & { assets: string[] }
-// probably pointless
-// interface Inventory extends Metadata {
-//   assets?: string[]
-// }
 
 const composePath = ({ key, tree }: { key: string; tree: string }) =>
   `${PREFIX}/${tree}/${key}`
@@ -52,7 +39,7 @@ const decomposePath = (path: string) => {
   return { tree, key: keySegments.join('/') }
 }
 
-export async function getMetadata(
+export async function getOverlayMetadata(
   dir: string,
 ): Promise<Record<string, Metadata>> {
   // This might be recursive at some point. Keeping it simple for now.
@@ -69,6 +56,7 @@ export async function getMetadata(
     path: string,
   ): Promise<[string, Metadata]> => {
     const { key, tree } = decomposePath(path)
+    const metadata = await getMetadata(path)
     if (type === 'hls') {
       const playlist = await getHlsPlaylist(path)
       return [
@@ -76,10 +64,9 @@ export async function getMetadata(
         {
           key,
           tree,
-          type,
           playlist,
-          meta_exiftool: await exiftool(join(path, playlist)),
-          meta_ffprobe: await ffprobe(join(path, playlist)),
+          ...metadata,
+          type,
         },
       ]
     } else if (type === 'mp4' || type === 'mov') {
@@ -87,10 +74,9 @@ export async function getMetadata(
         key,
         {
           key,
-          type,
           tree,
-          meta_exiftool: await exiftool(path),
-          meta_ffprobe: await ffprobe(path),
+          ...metadata,
+          type,
         },
       ]
     } else {
@@ -102,7 +88,7 @@ export async function getMetadata(
     await Promise.all(
       listing.map(async (entry) => {
         const path = join(entry.parentPath, entry.name)
-        const type = getType(entry.name)
+        const type = getVideoType(entry.name)
         return getEntry(type, path)
       }),
     ),
@@ -129,7 +115,10 @@ async function mkassets(metadata: Record<string, Metadata>) {
     const path = composePath({ key, tree })
     const mediaPath = playlist ? join(path, playlist) : path
     console.log(`Processing ${mediaPath} [${i + 1} of ${count}]`)
-    await mkthumb(mediaPath, getAssetDir(key), meta_ffprobe)
+    await mkthumb(mediaPath, {
+      outDir: getAssetDir(key),
+      metadata: meta_ffprobe,
+    })
   }
 }
 
@@ -175,46 +164,6 @@ async function mkinventory(metadata: Record<string, Metadata>) {
   return inventory
 }
 
-async function mkthumb(
-  video: string,
-  outDir: string,
-  metadata?: { isHDR: boolean; isPortrait: boolean },
-) {
-  const outPath = join(outDir, `thumb.webp`)
-
-  if (await Bun.file(outPath).exists()) {
-    console.log(`Skipping thumbnail generation; file exists: ${outPath}`)
-    return
-  }
-
-  if (!metadata) {
-    metadata = await ffprobe(video)
-  }
-
-  // An ffmpeg filter for HDR videos, to get reasonable colors out when
-  // extracting thumbnails. It doesn't mean a thing to me.
-  const VF_HDR =
-    'zscale=t=linear:npl=100,' +
-    'format=gbrpf32le,' +
-    'zscale=p=bt709,' +
-    'tonemap=tonemap=hable:desat=0,' +
-    'zscale=t=bt709:m=bt709:r=tv,' +
-    'format=yuv420p'
-
-  const { isHDR, isPortrait } = metadata
-
-  // A nifty syntax for the ffmpeg `scale` filter. -1 means "maintain aspect ratio" and -2
-  // means "also make it an even number," which some codecs actually require.
-  const vf_scale = isPortrait ? 'scale=-2:1280' : 'scale=1280:-2'
-
-  // The `thumbnail` filter samples 100 frames and selects the one it considers 'best',
-  // based on the histogram I believe.
-  const vf = `${isHDR ? `${VF_HDR},` : ''}thumbnail,${vf_scale}`
-
-  await $`mkdir -p ${outDir}`
-  await $`ffmpeg -v error -i ${video} -vf ${vf} -c:v libwebp -frames:v 1 -y ${outPath}`
-}
-
 async function getDirs(inDir: string) {
   inDir = await fs.realpath(inDir)
   let suffix: string
@@ -247,7 +196,7 @@ if (!inDir) {
 async function mkoverlay(...dirs: string[]) {
   // watch out for subtle bugs that might result from concurrent async operations
   // I can't see any at the moment
-  const metas = await Promise.all(dirs.map(getMetadata))
+  const metas = await Promise.all(dirs.map(getOverlayMetadata))
   await Promise.all(metas.map(mkassets))
   return await Promise.all(metas.map(mkinventory))
 }
@@ -256,8 +205,8 @@ const { daysDir, ovDir } = await getDirs(inDir)
 await ensureExists(daysDir, ovDir)
 
 const [daysInventory, ovInventory] = await mkoverlay(daysDir, ovDir)
-// const daysMeta = await getMetadata(daysDir)
-// const ovMeta = await getMetadata(ovDir)
+// const daysMeta = await getOverlayMetadata(daysDir)
+// const ovMeta = await getOverlayMetadata(ovDir)
 // await mkassets(daysMeta)
 // await mkassets(ovMeta)
 // const daysInventory = await mkinventory(daysMeta)

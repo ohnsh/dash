@@ -24,6 +24,8 @@ const tags = [
   '-AudioSampleRate',
 ]
 
+export type ExiftoolMetadata = Record<string, string | number>
+
 export default (video: string) =>
   $`exiftool ${opts} ${tags} ${video}`.json().then(wrangle)
 
