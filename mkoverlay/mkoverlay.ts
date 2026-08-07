@@ -8,7 +8,7 @@ import {
   isVideoFile,
   type MetadataBase,
   mkthumb,
-} from './util'
+} from './lib/util'
 
 const PREFIX = '/Volumes/Media'
 const isHlsDir = (name: string) => /\.hls$/i.test(name)

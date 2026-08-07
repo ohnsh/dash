@@ -10,6 +10,7 @@
     "@types/node": "^26.1.2"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.4",
     "temporal-polyfill": "^1.0.2",
     "zod": "^4.4.3"
   }

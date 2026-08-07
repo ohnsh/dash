@@ -43,7 +43,20 @@ process_camdir() {
     return 1
   fi
 
+  # extract date and camera/category information from path
+  local ymd cam=${PWD##*/}
+  ymd=$(cd .. && basename "$PWD")
+  if [[ ! $ymd =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+    echo "Error: parent of working directory ($PWD) should be the date of the recordings (e.g. '$(date -Idate)')." >&2
+    return 1
+  fi
+
+  local day=${ymd##*-} ym=${ymd%-*}
+  local r2path=$ym/$day/$cam
+
   local videos=(_raw/*.mp4)
+
+  # count used to limit scope when testing
   count=${count:-${#videos[@]}}
   local bn
 
@@ -67,22 +80,18 @@ process_camdir() {
       [[ -f "$bn" ]] &&
       mkassets "$bn" &&
       sync_camdir &&
+      index_inventory &&
       rm "$marker"
   done
 }
 
+index_inventory() {
+  local inv=$r2path/inventory.json
+
+  "$video_ts" index "$inv"
+}
+
 sync_camdir() {
-  local ymd=$(cd .. && basename "$PWD")
-  if [[ ! $ymd =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
-    echo "Error: parent of working directory ($PWD) should be the date of the recordings (e.g. '$(date -Idate)')." >&2
-    return 1
-  fi
-
-  local day=${ymd##*-}
-  local ym=${ymd%-*}
-  local cam=$(basename "$PWD")
-  local r2path=$ym/$day/$cam
-
   echo "Syncing to r2:vod/$r2path" >&2
 
   rclone copy -P \
@@ -101,7 +110,7 @@ mkassets() {
   local video=$1
   mkdir -p "_assets/$video"
 
-  "$video_ts" "$video"
+  "$video_ts" mkassets "$video"
 }
 
 if [[ $1 == '-n' ]]; then
