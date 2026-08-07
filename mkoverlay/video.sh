@@ -80,15 +80,20 @@ process_camdir() {
       [[ -f "$bn" ]] &&
       mkassets "$bn" &&
       sync_camdir &&
-      index_inventory &&
       rm "$marker"
   done
+
+  # do this once per run instead of per file
+  index_inventory
 }
 
 index_inventory() {
-  local inv=$r2path/inventory.json
+  local r2inv=$r2path/inventory.json
 
-  "$video_ts" index "$inv"
+  # only update index if we actually have an inventory file
+  if [[ -f ./inventory.json ]]; then
+    "$video_ts" index "$r2inv"
+  fi
 }
 
 sync_camdir() {
