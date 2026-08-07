@@ -1,7 +1,9 @@
 {
   "name": "mkoverlay",
   "bin": {
-    "mkinventory": "./index.ts"
+    "mkinventory": "./index.ts",
+    "video.sh": "./video.sh",
+    "video.ts": "./video.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

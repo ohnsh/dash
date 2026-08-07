@@ -18,6 +18,8 @@
       "name": "mkoverlay",
       "bin": {
         "mkinventory": "./index.ts",
+        "video.sh": "./video.sh",
+        "video.ts": "./video.ts",
       },
       "dependencies": {
         "temporal-polyfill": "^1.0.2",

@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+script_dir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
+video_ts=$script_dir/video.ts
+marker=.video.sh_inprogress
+
 lsof_t() {
   local file=$1
 
@@ -22,7 +26,12 @@ maybe_remux() {
   local out=$2
 
   if is_fragmented "$raw"; then
-    ffmpeg -i "$raw" -c copy -movflags +faststart "$out"
+    ffmpeg \
+      -v warning \
+      -i "$raw" \
+      -c copy \
+      -movflags +faststart \
+      "$out" && rm "$raw"
   else
     mv "$raw" "$out"
   fi
@@ -35,9 +44,10 @@ process_camdir() {
   fi
 
   local videos=(_raw/*.mp4)
+  count=${count:-${#videos[@]}}
   local bn
 
-  for raw in "${videos[@]}"; do
+  for raw in "${videos[@]:0:$count}"; do
     if lsof_t "$raw" &>/dev/null; then
       echo "$raw currently open; skipping." >&2
       continue
@@ -52,26 +62,64 @@ process_camdir() {
       continue
     fi
 
-    maybe_remux "$raw" "$bn" &&
+    touch "$marker" &&
+      maybe_remux "$raw" "$bn" &&
       [[ -f "$bn" ]] &&
-      mkassets "$bn"
+      mkassets "$bn" &&
+      sync_camdir &&
+      rm "$marker"
   done
 }
+
+sync_camdir() {
+  local ymd=$(cd .. && basename "$PWD")
+  if [[ ! $ymd =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+    echo "Error: parent of working directory ($PWD) should be the date of the recordings (e.g. '$(date -Idate)')." >&2
+    return 1
+  fi
+
+  local day=${ymd##*-}
+  local ym=${ymd%-*}
+  local cam=$(basename "$PWD")
+  local r2path=$ym/$day/$cam
+
+  echo "Syncing to r2:vod/$r2path" >&2
+
+  rclone copy -P \
+    . "r2:vod/$r2path" \
+    --exclude ".*/**" \
+    --exclude "_raw/**" \
+    --exclude ".DS_Store"
+}
+
+# could limit env loading to subshell
+# rclone() {
+#   command rclone "$@"
+# }
 
 mkassets() {
   local video=$1
   mkdir -p "_assets/$video"
 
-  
-  
+  "$video_ts" "$video"
 }
 
+if [[ $1 == '-n' ]]; then
+  count=$2
+  shift 2
+fi
 camdir=$1
+shift
 
 cd "$camdir" || {
   echo "Error: couldn't enter $camdir" >&2
   exit 1
 }
+
+# rclone credentials
+set -a
+. "$script_dir/.env"
+set +a
 
 process_camdir
 
