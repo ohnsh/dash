@@ -26,6 +26,7 @@ maybe_remux() {
   local out=$2
 
   if is_fragmented "$raw"; then
+    echo "Remuxing $raw" >&2
     ffmpeg \
       -v warning \
       -i "$raw" \
@@ -90,6 +91,7 @@ process_camdir() {
 index_inventory() {
   local r2inv=$r2path/inventory.json
 
+  echo "Indexing $r2inv" >&2
   # only update index if we actually have an inventory file
   if [[ -f ./inventory.json ]]; then
     "$video_ts" index "$r2inv"
@@ -99,7 +101,7 @@ index_inventory() {
 sync_camdir() {
   echo "Syncing to r2:vod/$r2path" >&2
 
-  rclone copy -P \
+  rclone copy \
     . "r2:vod/$r2path" \
     --exclude ".*/**" \
     --exclude "_raw/**" \
@@ -114,6 +116,8 @@ sync_camdir() {
 mkassets() {
   local video=$1
   mkdir -p "_assets/$video"
+
+  echo "Creating assets for $video" >&2
 
   "$video_ts" mkassets "$video"
 }

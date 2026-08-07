@@ -23,7 +23,7 @@ export async function indexInventory(path: string, date: string) {
     [path, date],
   )
 
-  console.log(res)
+  // console.log(res)
 }
 
 export async function queryInventory() {
