@@ -2,7 +2,7 @@ import { DASHD_BASE, unpack } from './dashd'
 import HlsStats from './hls-stats'
 import HlsSwitch from './hls-switch'
 
-export default async function (props: PageProps<'/hls'>) {
+export default async function (props: PageProps<'/live'>) {
   let { stream } = await props.searchParams
   if (Array.isArray(stream)) {
     stream = stream[0]

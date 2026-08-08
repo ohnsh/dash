@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { DASHD_BASE, type Path, type PathResponse } from '@/app/hls/dashd'
-import { isValidStream } from '@/app/hls/util'
+import { DASHD_BASE, type Path, type PathResponse } from '@/app/live/dashd'
+import { isValidStream } from '@/app/live/util'
 import { StatusIndicator } from '@/components/status-indicator'
 
 let promise: Promise<void>
@@ -54,7 +54,7 @@ export default function StreamMenu() {
 function StreamMenuItem({ item }: { item: Path }) {
   return (
     <li>
-      <Link href={`/hls?stream=${item.name}`}>{item.name}</Link>{' '}
+      <Link href={`/live?stream=${item.name}`}>{item.name}</Link>{' '}
       <StatusIndicator online={item.online ?? false} size="small" />
     </li>
   )

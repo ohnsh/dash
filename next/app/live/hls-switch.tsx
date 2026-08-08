@@ -47,7 +47,7 @@ export default function HlsSwitch({
           return (
             <li key={name}>
               <a
-                href={`/hls?stream=${name}`}
+                href={`/live?stream=${name}`}
                 aria-current={name === stream ? 'page' : undefined}
               >
                 {name}
