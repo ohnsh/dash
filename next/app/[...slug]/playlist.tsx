@@ -28,12 +28,7 @@ export default function Playlist({
   const sParams = useSearchParams()
   const v = sParams.get('v')
 
-  const vidUrl = useMemo(() => {
-    if (!v) return undefined
-
-    return `${slugToR2URL(slug)}/${v}`
-    // slugToR2URL(pathname.split('/'))
-  }, [v, pathname])
+  const vidUrl = useMemo(() => v && `${slugToR2URL(slug)}/${v}`, [v, pathname])
 
   return (
     <article className={css.container}>

@@ -14,7 +14,7 @@ export default async function InventoryList() {
         const slug = r2PathToSlug(inventory_path)
         return (
           <li key={inventory_path}>
-            <Link href={`/vod/${slug.join('/')}`}>{slugToTitle(slug)}</Link>
+            <Link href={`/${slug.join('/')}`}>{slugToTitle(slug)}</Link>
           </li>
         )
       })}

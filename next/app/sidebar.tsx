@@ -11,7 +11,7 @@ export default function Sidebar() {
         <StreamMenu />
       </React.Suspense>
 
-      <h2>VOD playlists</h2>
+      <h2>Archive</h2>
       <React.Suspense fallback={<div>loading VOD inventory...</div>}>
         <InventoryList />
       </React.Suspense>
