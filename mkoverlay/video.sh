@@ -38,6 +38,21 @@ maybe_remux() {
   fi
 }
 
+# using absolute links instead for now
+# move_or_relink() {
+#   local src=$1 dst=$2
+#   local ln_src
+
+#   if [[ -L $src ]]; then
+#     # TODO: smartly rebuild link
+#     ln_src=$(readlink "$src")
+#     if [[ $ln_src == ../* ]]
+#     ln -s && rm "$src"
+#   else
+#     mv "$src" "$dst"
+#   fi
+# }
+
 process_camdir() {
   if [[ ! -d _raw ]]; then
     echo "Error: process_catdir should be called with the working directory already set, perhaps in a subshell. The working directory must contain a _raw directory where mp4 recordings appear." >&2
@@ -45,23 +60,35 @@ process_camdir() {
   fi
 
   # extract date and camera/category information from path
-  local ymd cam=${PWD##*/}
+  local ymd day ym cam=${PWD##*/}
   ymd=$(cd .. && basename "$PWD")
-  if [[ ! $ymd =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+  cam=${cam%_vod}
+
+  if [[ $ymd =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+    day=${ymd##*-}
+    ym=${ymd%-*}
+  elif [[ $ymd =~ ^[0-9]{2}$ ]]; then
+    day=$ymd
+    ym=$(cd ../.. && basename "$PWD")
+  fi
+
+  if [[ ! $ym/$day =~ ^[0-9]{4}-[0-9]{2}/[0-9]{2}$ ]]; then
     echo "Error: parent of working directory ($PWD) should be the date of the recordings (e.g. '$(date -Idate)')." >&2
     return 1
   fi
 
-  local day=${ymd##*-} ym=${ymd%-*}
   local r2path=$ym/$day/$cam
-
   local videos=(_raw/*.mp4)
 
   # count used to limit scope when testing
   count=${count:-${#videos[@]}}
   local bn
 
+  touch "$marker"
+
   for raw in "${videos[@]:0:$count}"; do
+    [[ -f $raw ]] || continue
+
     if lsof_t "$raw" &>/dev/null; then
       echo "$raw currently open; skipping." >&2
       continue
@@ -76,16 +103,15 @@ process_camdir() {
       continue
     fi
 
-    touch "$marker" &&
-      maybe_remux "$raw" "$bn" &&
+    maybe_remux "$raw" "$bn" &&
       [[ -f "$bn" ]] &&
-      mkassets "$bn" &&
-      sync_camdir &&
-      rm "$marker"
+      mkassets "$bn"
   done
 
   # do this once per run instead of per file
-  index_inventory
+  sync_camdir &&
+    index_inventory &&
+    rm "$marker"
 }
 
 index_inventory() {
@@ -99,10 +125,11 @@ index_inventory() {
 }
 
 sync_camdir() {
+  local camdir=${1:-.}
   echo "Syncing to r2:vod/$r2path" >&2
 
-  rclone copy \
-    . "r2:vod/$r2path" \
+  rclone copy -L \
+    "$camdir" "r2:vod/$r2path" \
     --exclude ".*/**" \
     --exclude "_raw/**" \
     --exclude ".DS_Store"
@@ -122,24 +149,85 @@ mkassets() {
   "$video_ts" mkassets "$video"
 }
 
+vod() {
+  local camdir=$1
+
+  cd "$camdir" || {
+    echo "Error: couldn't enter $camdir" >&2
+    exit 1
+  }
+
+  # rclone credentials
+  set -a
+  . "$script_dir/.env"
+  set +a
+
+  process_camdir
+}
+
+link_dir() {
+  local refdir=${1%/}
+
+  [[ -d $refdir ]] || {
+    echo "Error: $refdir must be an existing directory." >&2
+    return 1
+  }
+
+  local workdir
+  workdir=$(dirname "$refdir")/${refdir}_vod
+  mkdir -p "$workdir/_raw"
+
+  # using absolute links instead for now
+  # local link_base=../../$(basename "$refdir")
+  local link_src
+
+  for vid in "$refdir"/*.mp4; do
+    [[ -f $vid ]] || continue
+    # link_src=$link_base/$(basename "$vid")
+    link_src=$(realpath "$vid")
+
+    ln -sv "$link_src" "$workdir/_raw"
+  done
+
+  echo "$refdir linked to $workdir/_raw" >&2
+  echo "run 'cd $workdir && $0 vod .'" >&2
+}
+
+usage() { cat; } <<EOF
+  $0 [-n COUNT] vod|link DIR
+EOF
+
 if [[ $1 == '-n' ]]; then
   count=$2
   shift 2
 fi
-camdir=$1
-shift
 
-cd "$camdir" || {
-  echo "Error: couldn't enter $camdir" >&2
+# vod is default command; enforce one directory argument regardless.
+case "$1" in
+vod)
+  cmd=vod
+  shift
+  ;;
+link)
+  cmd=link_dir
+  shift
+  ;;
+*)
+  if [[ -d $1 && $# -eq 1 ]]; then
+    cmd=vod
+  else
+    usage
+    exit 1
+  fi
+  ;;
+esac
+
+if [[ $# -ne 1 ]]; then
+  usage
   exit 1
-}
+fi
 
-# rclone credentials
-set -a
-. "$script_dir/.env"
-set +a
-
-process_camdir
+$cmd "$@"
 
 # layout:
 # %Y-%m-%d
