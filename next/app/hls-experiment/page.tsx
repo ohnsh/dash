@@ -44,7 +44,7 @@ const Experiment = ({
 
 export default async function Home({
   searchParams,
-}: PageProps<'/live/experiment'>) {
+}: PageProps<'/hls-experiment'>) {
   let { tech = 'hls.js' } = await searchParams
   if (Array.isArray(tech)) {
     tech = tech[0]
