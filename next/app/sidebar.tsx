@@ -1,7 +1,7 @@
 import React from 'react'
+import InventoryList from '@/components/inventory-list'
 import StreamMenu from '@/components/stream-menu'
 import css from './sidebar.module.css'
-import InventoryList from './vod/inv-list'
 
 export default function Sidebar() {
   return (

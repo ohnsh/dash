@@ -3,21 +3,19 @@
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useMemo } from 'react'
-import type { Meta } from '../schema'
+import type { Meta } from '@/lib/vod-schema'
 import css from './playlist.module.css'
-import { vodSlugToTitle } from '../util'
+import { slugToR2URL, slugToTitle } from '@/lib/vod'
 
-const BUCKETS = {
-  days: 'https://days-media.ohn.sh',
-  overlay: 'https://vod.ohn.sh',
-} as const
-
-const thumbUrl = (assets: string[]) => {
-  const [thumb] = assets
-  return new URL(thumb, BUCKETS['overlay']).toString()
+const thumbUrl = (slug: string[], assets: string[]) => {
+  // relative to camdir base
+  const [thumbRelative] = assets
+  // absolute path
+  // const thumbPath = [...slug, thumbRelative].join('/')
+  return `${slugToR2URL(slug)}/${thumbRelative}`
 }
 
-const basename = (path: string) => path.split('/').at(-1)
+// const basename = (path: string) => path.split('/').at(-1)
 
 export default function Playlist({
   slug,
@@ -33,34 +31,28 @@ export default function Playlist({
   const vidUrl = useMemo(() => {
     if (!v) return undefined
 
-    const [, , year, month, ...rest] = pathname.split('/')
-    const key = `/${year}-${month}/${rest.join('/')}/${v}`
-
-    // should be searching through `inventory` to find the explicit value
-    const tree = key.endsWith('.m3u8') ? 'overlay' : 'days'
-
-    return new URL(key, BUCKETS[tree]).toString()
+    return `${slugToR2URL(slug)}/${v}`
+    // slugToR2URL(pathname.split('/'))
   }, [v, pathname])
 
   return (
     <article className={css.container}>
-      <h2>{vodSlugToTitle(slug)}</h2>
+      <h2>{slugToTitle(slug)}</h2>
       <ul>
         {inventory.map((item) => {
-          let itemV = basename(item.key)
-          if (item.type === 'hls') {
-            itemV = `${itemV}/${item.playlist}`
-          }
-          console.log(itemV)
+          let name = item.name
+          // if (item.type === 'hls') {
+          //   name = `${name}/${item.playlist}`
+          // }
           return (
             <li
-              key={item.key}
+              key={name}
               className={
                 item.meta_ffprobe.isPortrait ? 'portrait' : 'landscape'
               }
             >
-              <Link href={`?v=${itemV}`}>
-                <img alt="" src={thumbUrl(item.assets)} />
+              <Link href={`?v=${name}`}>
+                <img alt="" src={thumbUrl(slug, item.assets)} />
               </Link>
             </li>
           )

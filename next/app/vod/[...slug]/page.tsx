@@ -1,6 +1,6 @@
 import Playlist from './playlist'
-import { type Meta, MetaSchema } from '../schema'
-import { vodSlugToR2URL } from '../util'
+import { type Meta, MetaSchema } from '@/lib/vod-schema'
+import { slugToR2URL } from '@/lib/vod'
 
 export default async function Vod({
   searchParams,
@@ -8,7 +8,7 @@ export default async function Vod({
 }: PageProps<'/vod/[...slug]'>) {
   let { v = '' } = await searchParams
   const { slug } = await params
-  const invURL = vodSlugToR2URL(slug)
+  const invURL = `${slugToR2URL(slug)}/inventory.json`
 
   v = Array.isArray(v) ? v[0] : v
 
