@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { dbQuery } from '@/lib/turso'
-import { r2PathToSlug, slugToTitle } from '@/lib/vod'
+import { r2PathToSlug } from '@/lib/vod'
 
 export default async function InventoryList() {
   // test fallback content
@@ -53,9 +53,10 @@ function DayMenu({
 
 function InventoryItem({ inventory }: { inventory: string }) {
   const slug = r2PathToSlug(inventory)
+  const cam = slug.at(-1)
   return (
     <li>
-      <Link href={`/${slug.join('/')}`}>{slugToTitle(slug)}</Link>
+      <Link href={`/${slug.join('/')}`}>{cam}</Link>
     </li>
   )
 }
