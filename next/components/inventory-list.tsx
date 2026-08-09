@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { dbQuery } from '@/lib/turso'
-import { r2PathToSlug } from '@/lib/vod'
+import { r2PathToRoute } from '@/lib/vod'
 
 export default async function InventoryList() {
   // test fallback content
@@ -40,7 +40,7 @@ function DayMenu({
   return (
     <details>
       <summary>
-        <Link href={date.replaceAll(/-/g, '/')}>{date}</Link>
+        <Link href={`/${date}`}>{date}</Link>
       </summary>
       <ul>
         {inventories.map((inventory) => (
@@ -52,11 +52,11 @@ function DayMenu({
 }
 
 function InventoryItem({ inventory }: { inventory: string }) {
-  const slug = r2PathToSlug(inventory)
-  const cam = slug.at(-1)
+  const route = r2PathToRoute(inventory)
+  const cam = route.split('/').at(-1)
   return (
     <li>
-      <Link href={`/${slug.join('/')}`}>{cam}</Link>
+      <Link href={route}>{cam}</Link>
     </li>
   )
 }

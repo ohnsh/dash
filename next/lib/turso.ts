@@ -10,7 +10,7 @@ export const turso = createClient({
   authToken: process.env.TURSO_AUTH_TOKEN,
 })
 
-export async function dbQuery<T = IndexRow>(sql: InStatement) {
+export const dbQuery = async <T = IndexRow>(sql: InStatement) => {
   const result = await turso.execute(sql)
   return result.rows as unknown as T[]
 }

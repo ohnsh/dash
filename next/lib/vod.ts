@@ -21,6 +21,11 @@ export const r2PathToSlug = (r2path: string) => {
   return [...yearMo.split('-'), day, cam]
 }
 
+export const r2PathToRoute = (r2path: string) => {
+  const [yearMo, day, cam] = r2path.split('/')
+  return `/${yearMo}-${day}/${cam}`
+}
+
 // Using libsql now
 // export const getRootList = () =>
 //   fetch(ROOT_INV)

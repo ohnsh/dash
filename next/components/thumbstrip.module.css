@@ -1,0 +1,18 @@
+.thumbstrip {
+  >ul {
+    list-style: none;
+    display: flex;
+    overflow-x: auto;
+
+    img {
+      /* the tailwind reset value of 100% has some interesting effects when there are a
+      bunch of siblings. */
+      max-width: 300px;
+    }
+  }
+
+  video {
+    max-width: 800px;
+    /* margin-inline: auto; */
+  }
+}
