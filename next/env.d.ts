@@ -6,3 +6,6 @@ declare global {
     }
   }
 }
+
+// crucial for Typescript to actually use this augmentation.
+export {}

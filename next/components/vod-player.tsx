@@ -1,10 +1,9 @@
 'use client'
 
 import { usePathname, useSearchParams } from 'next/navigation'
+import { useEffect, useRef } from 'react'
 import { BUCKET_URL } from '@/lib/vod'
 import css from './vod-player.module.css'
-
-// Tip: Adding key={videoSrc} to your <video> element ensures the browser cleanly tears down and reloads the media pipeline when a genuinely new video URL is set.
 
 function getSrc(pathname: string, v: string) {
   const [, date] = pathname.split('/')
@@ -18,16 +17,36 @@ function getSrc(pathname: string, v: string) {
 export default function VodPlayer({ src }: { src?: string }) {
   const pathname = usePathname()
   const sParams = useSearchParams()
-  const v = sParams.get('v')
+  const videoRef = useRef<HTMLVideoElement>(null)
 
+  const v = sParams.get('v')
   src ??= v ? getSrc(pathname, v) : undefined
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video || !src) return
+
+    video.src = src
+    // video.load()
+
+    return () => {
+      // if (video.isConnected)
+      video.pause()
+      video.removeAttribute('src')
+      video.load()
+    }
+  }, [src])
 
   // const vidUrl = v && `${slugToR2URL(slug)}/${v}`
 
+  // adding key={src} to <video> to unmount/remount it on src change.
+  // still hearing phantom audio from previous sources, however.
+  // it may be best to force a navigation using <a> instead of <Link>
+  // EDIT: the above effect works much better than using the key prop.
   return (
     <div className={css.container}>
       <span>VOD player babyyyyyy</span>
-      {src && <video autoPlay controls playsInline src={src} />}
+      {src && <video ref={videoRef} autoPlay controls playsInline />}
     </div>
   )
 }
