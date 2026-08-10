@@ -37,6 +37,8 @@ function DayMenu({
   date: string
   inventories: string[]
 }) {
+  return <Link href={`/${date}`}>{date}</Link>
+  /*
   return (
     <details>
       <summary>
@@ -49,6 +51,7 @@ function DayMenu({
       </ul>
     </details>
   )
+*/
 }
 
 function InventoryItem({ inventory }: { inventory: string }) {

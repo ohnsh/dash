@@ -1,0 +1,15 @@
+.container {
+  backdrop-filter: brightness(150%);
+  aspect-ratio: 16 / 9;
+  max-height: 70vh;
+  position: relative;
+
+  >span {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+    font-weight: bold;
+    color: hsl(from var(--foreground) h s calc(l*.5));
+  }
+}

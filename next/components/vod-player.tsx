@@ -2,6 +2,7 @@
 
 import { usePathname, useSearchParams } from 'next/navigation'
 import { BUCKET_URL } from '@/lib/vod'
+import css from './vod-player.module.css'
 
 // Tip: Adding key={videoSrc} to your <video> element ensures the browser cleanly tears down and reloads the media pipeline when a genuinely new video URL is set.
 
@@ -23,5 +24,10 @@ export default function VodPlayer({ src }: { src?: string }) {
 
   // const vidUrl = v && `${slugToR2URL(slug)}/${v}`
 
-  return <div>{src && <video autoPlay controls playsInline src={src} />}</div>
+  return (
+    <div className={css.container}>
+      <span>VOD player babyyyyyy</span>
+      {src && <video autoPlay controls playsInline src={src} />}
+    </div>
+  )
 }
