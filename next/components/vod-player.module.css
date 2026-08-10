@@ -3,6 +3,8 @@
   aspect-ratio: 16 / 9;
   max-height: 70vh;
   position: relative;
+  border-radius: var(--radius-md);
+  overflow: clip;
 
   >span {
     position: absolute;
