@@ -46,7 +46,15 @@ export default function VodPlayer({ src }: { src?: string }) {
   return (
     <div className={css.container}>
       <span>VOD player babyyyyyy</span>
-      {src && <video ref={videoRef} autoPlay controls playsInline />}
+      {src && (
+        <video
+          ref={videoRef}
+          crossOrigin="anonymous"
+          autoPlay
+          controls
+          playsInline
+        />
+      )}
     </div>
   )
 }
