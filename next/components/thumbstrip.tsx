@@ -5,8 +5,10 @@ import css from './thumbstrip.module.css'
 
 export default async function ThumbStrip({
   inventoryPath,
+  v,
 }: {
   inventoryPath: string
+  v?: string
 }) {
   const inventory: Meta[] = await fetch(new URL(inventoryPath, BUCKET_URL))
     .then((r) => r.json())
@@ -18,14 +20,18 @@ export default async function ThumbStrip({
     <article className={css.thumbstrip}>
       <h2>{inventoryPath}</h2>
       <ul>
-        {inventory.map((item) => (
-          <Thumbnail
-            key={item.name}
-            href={`?v=${cam}/${item.name}`}
-            src={thumbUrl(inventoryPath, item.assets[0])}
-            isPortrait={item.meta_ffprobe.isPortrait}
-          />
-        ))}
+        {inventory.map((item) => {
+          const v_href = `${cam}/${item.name}`
+          return (
+            <Thumbnail
+              key={item.name}
+              href={`?v=${v_href}`}
+              src={thumbUrl(inventoryPath, item.assets[0])}
+              isSelected={v === v_href}
+              isPortrait={item.meta_ffprobe.isPortrait}
+            />
+          )
+        })}
       </ul>
     </article>
   )
@@ -34,15 +40,17 @@ export default async function ThumbStrip({
 function Thumbnail({
   href,
   src,
+  isSelected,
   isPortrait,
 }: {
   href: string
   src: string
+  isSelected: boolean
   isPortrait: boolean
 }) {
   return (
     <li className={isPortrait ? 'portrait' : 'landscape'}>
-      <Link href={href}>
+      <Link href={href} aria-current={isSelected ? 'page' : undefined}>
         <img alt="" src={src} />
       </Link>
     </li>

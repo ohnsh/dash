@@ -5,7 +5,18 @@
     list-style: none;
     display: flex;
     gap: 5px;
+    padding-block: 2px;
     overflow-x: auto;
+
+    a {
+      display: inline-block;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    [aria-current] {
+      outline: solid var(--color-accent) 2px;
+    }
 
     img {
       /* the tailwind reset value of 100% has some interesting effects when there are a

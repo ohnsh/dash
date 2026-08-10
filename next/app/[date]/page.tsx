@@ -26,6 +26,7 @@ export default async function Vod({
 }: PageProps<'/[date]'>) {
   const { date } = await params
   const sp = await searchParams
+  const v = Array.isArray(sp.v) ? sp.v[0] : sp.v
 
   if (!validateDate(date)) {
     notFound()
@@ -43,6 +44,7 @@ export default async function Vod({
         <ThumbStrip
           key={row.inventory_path}
           inventoryPath={row.inventory_path}
+          v={v}
         />
       ))}
     </div>
