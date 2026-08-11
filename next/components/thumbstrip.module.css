@@ -1,10 +1,15 @@
 .thumbstrip {
   margin-block-start: 1rem;
 
+  h2 {
+    font-weight: bold;
+    font-size: var(--text-md);
+  }
+
   >ul {
     list-style: none;
     display: flex;
-    gap: 4px;
+    gap: calc(var(--spacing) * 2);
     /* just enough room for outline */
     padding: 2px;
     overflow-x: auto;

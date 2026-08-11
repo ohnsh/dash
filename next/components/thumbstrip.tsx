@@ -18,7 +18,7 @@ export default async function ThumbStrip({
 
   return (
     <article className={css.thumbstrip}>
-      <h2>{inventoryPath}</h2>
+      <h2>{cam}</h2>
       <ul>
         {inventory.map((item) => {
           const v_href = `${cam}/${item.name}`
