@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import DecentLay from './decent-lay'
+import InventoryContainer from './inventory-container'
 import css from './layout.module.css'
 import Sidebar from './sidebar'
 
@@ -31,7 +32,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className={css.body}>
-        <DecentLay sidebar={<Sidebar />}>{children}</DecentLay>
+        <InventoryContainer>
+          <DecentLay sidebar={<Sidebar />}>{children}</DecentLay>
+        </InventoryContainer>
       </body>
     </html>
   )

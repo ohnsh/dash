@@ -1,31 +1,24 @@
+'use client'
+
 import Link from 'next/link'
-import { dbQuery } from '@/lib/turso'
-import { r2PathToRoute } from '@/lib/vod'
+// import { r2PathToRoute } from '@/lib/vod'
+import { useInventory } from './inventory-provider'
 
-export default async function InventoryList() {
-  // test fallback content
-  // await new Promise((resolve) => setTimeout(resolve, 1000))
+export default function InventoryList() {
+  const { inventoryMap } = useInventory()
 
-  const rows = await dbQuery(`
-    SELECT inventory_path, date
-    FROM vod_index
-    ORDER BY date DESC
-    LIMIT 100
-  `)
-
-  const collated = rows.reduce<Record<string, string[]>>((prev, current) => {
-    prev[current.date] ??= []
-    prev[current.date].push(current.inventory_path)
-    return prev
-  }, {})
+  if (!inventoryMap) return null
 
   return (
     <ul>
-      {Object.entries(collated).map(([date, paths]) => (
-        <li key={date}>
-          <DayMenu date={date} inventories={paths} />
-        </li>
-      ))}
+      {Object.entries(inventoryMap).map(
+        ([date, paths]) =>
+          paths && (
+            <li key={date}>
+              <DayMenu date={date} inventories={paths} />
+            </li>
+          ),
+      )}
     </ul>
   )
 }
@@ -54,12 +47,12 @@ function DayMenu({
 */
 }
 
-function InventoryItem({ inventory }: { inventory: string }) {
-  const route = r2PathToRoute(inventory)
-  const cam = route.split('/').at(-1)
-  return (
-    <li>
-      <Link href={route}>{cam}</Link>
-    </li>
-  )
-}
+// function InventoryItem({ inventory }: { inventory: string }) {
+//   const route = r2PathToRoute(inventory)
+//   const cam = route.split('/').at(-1)
+//   return (
+//     <li>
+//       <Link href={route}>{cam}</Link>
+//     </li>
+//   )
+// }
