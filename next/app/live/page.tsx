@@ -27,11 +27,9 @@ export default async function (props: PageProps<'/live'>) {
   }
 
   return (
-    <article>
+    <article className="flex flex-col h-full">
       <HlsSwitch className="mx-auto" items={data.items} />
-      <section>
-        {stream && <HlsStats stream={stream} init={{ data, error }} />}
-      </section>
+      {stream && <HlsStats stream={stream} init={{ data, error }} />}
     </article>
   )
 }

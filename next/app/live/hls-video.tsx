@@ -13,7 +13,7 @@ export default function ClientStream({ streamUrl }: { streamUrl: string }) {
       playsInline
       muted
       // needs to be dynamic based on isPortrait
-      style={{ aspectRatio: '16/9' }}
+      // style={{ aspectRatio: '16/9' }}
     ></video>
   )
 }

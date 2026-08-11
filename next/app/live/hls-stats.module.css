@@ -1,6 +1,18 @@
 .container {
   padding-top: 1rem;
 
+  /*
+  The idea is to only start shrinking <video> when the stats are cut down to
+  only the tabs at the top (the 4rem flex-basis), but to allow the stats
+  component to expand (flex-grow) when there's extra space.
+
+  This approach relies on scrolling <main> to view content that has completely
+  overflowed our <article> flex container. That doesn't sound great, but so far
+  the results look good.
+  */
+  min-height: 0;
+  flex: 1 0 4rem;
+
   table {
     margin-inline: auto;
 

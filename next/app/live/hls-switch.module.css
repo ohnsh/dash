@@ -1,13 +1,21 @@
 .container {
-  /* we contain the <video>, too */
-  /* max-width: 800px; */
+  display: flex;
+  flex-flow: column;
+  gap: .25rem;
+
+  min-height: 250px;
+  width: 100%;
 
   video {
-    width: 100%;
+    align-self: center;
+    aspect-ratio: 16/9;
+    min-height: 0;
+    border-radius: var(--radius-md);
   }
 
   ul {
-    padding: 1rem .5rem;
+    padding: 0;
+    flex: none;
     list-style: none;
     display: flex;
     justify-content: end;
