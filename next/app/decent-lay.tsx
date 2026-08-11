@@ -1,17 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import FooterContent from './footer.mdx'
 import Header from './header'
 import css from './layout.module.css'
+import Sidebar from './sidebar'
 
-export default function DecentLay({
-  sidebar,
-  children,
-}: {
-  sidebar: React.ReactElement
-  children: React.ReactNode
-}) {
+export default function DecentLay({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setSidebarOpen] = useState(false)
 
   return (
@@ -28,11 +22,11 @@ export default function DecentLay({
           aria-label="Close menu"
         ></button>
       )}
-      <aside className={isSidebarOpen ? css.sidebarOpen : ''}>{sidebar}</aside>
+      <Sidebar
+        isSidebarOpen={isSidebarOpen}
+        toggleSidebar={() => setSidebarOpen((prev) => !prev)}
+      />
       <main>{children}</main>
-      <footer>
-        <FooterContent />
-      </footer>
     </div>
   )
 }

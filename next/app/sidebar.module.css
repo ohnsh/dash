@@ -17,4 +17,33 @@
     text-decoration: none;
     font-weight: 600;
   }
+
+  footer {
+    padding-block: 2rem .5rem;
+
+    ul {
+      padding-inline: 0;
+      font-weight: bold;
+      display: flex;
+      flex-flow: column;
+      list-style-position: inside;
+      list-style-type: '/ ';
+      font-size: var(--text-sm);
+
+      li::marker {
+        color: hsl(from var(--foreground) h s l / .6);
+      }
+
+      /* ::marker forbids padding and extra spaces in list-style-type
+      cause misalignment in Edge */
+      li::before {
+        content: ' ';
+        padding-inline: .1em;
+      }
+
+      a {
+        text-decoration: none;
+      }
+    }
+  }
 }

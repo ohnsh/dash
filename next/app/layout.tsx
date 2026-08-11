@@ -4,7 +4,6 @@ import './globals.css'
 import DecentLay from './decent-lay'
 import InventoryContainer from './inventory-container'
 import css from './layout.module.css'
-import Sidebar from './sidebar'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -33,7 +32,7 @@ export default function RootLayout({
     >
       <body className={css.body}>
         <InventoryContainer>
-          <DecentLay sidebar={<Sidebar />}>{children}</DecentLay>
+          <DecentLay>{children}</DecentLay>
         </InventoryContainer>
       </body>
     </html>

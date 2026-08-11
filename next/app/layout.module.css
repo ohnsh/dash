@@ -10,7 +10,7 @@
   height: 100%;
 
   /* mobile layout */
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr;
   grid-template-columns: 1fr;
 
   >header {
@@ -18,7 +18,7 @@
     position: sticky;
     top: 0;
     background: var(--background);
-    z-index: 1;
+    z-index: 2;
 
     button {
       cursor: pointer;
@@ -38,13 +38,10 @@
     overflow-y: auto;
   }
 
-  >footer {
-    grid-row: 3;
-  }
-
   >aside {
     position: fixed;
     inset: 0 auto 0 0;
+    z-index: 1;
     padding-block: 3rem 1rem;
     padding-inline: 1rem 2rem;
     background: var(--background);
@@ -64,6 +61,7 @@
   .backdrop {
     position: fixed;
     inset: 0;
+    z-index: 1;
     background-color: hsl(from black h s l / .5);
     backdrop-filter: blur(2px);
     cursor: pointer;
@@ -89,11 +87,6 @@
       }
     }
 
-    >footer {
-      grid-column: 2;
-      grid-row: 3;
-    }
-
     >main {
       grid-column: 2;
       grid-row: 2;
@@ -107,7 +100,7 @@
       background: unset;
 
       grid-column: 1;
-      grid-row: 2 / 4;
+      grid-row: 2;
     }
 
     .backdrop {
@@ -148,28 +141,6 @@
       content: '';
       /* slower than the real thing to make it less distracting */
       animation: blink .8s linear alternate infinite;
-    }
-  }
-
-  >footer {
-    padding-block: 2rem .5rem;
-
-    ul {
-      padding-inline: 0;
-      font-weight: bold;
-      display: flex;
-      justify-content: center;
-      list-style: none;
-      font-size: var(--text-sm);
-
-      li:not(:first-child)::before {
-        content: '/';
-        margin-inline: .8rem;
-      }
-
-      a {
-        text-decoration: none;
-      }
     }
   }
 }
