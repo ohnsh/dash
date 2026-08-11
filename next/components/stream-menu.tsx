@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { DASHD_BASE, type Path, type PathResponse } from '@/app/live/dashd'
 import { isValidStream } from '@/app/live/util'
 import { StatusIndicator } from '@/components/status-indicator'
+import { useSidebarState } from './sidebar-state-provider'
 
 let promise: Promise<void>
 
@@ -52,9 +53,13 @@ export default function StreamMenu() {
 }
 
 function StreamMenuItem({ item }: { item: Path }) {
+  const { close: closeSidebar } = useSidebarState()
+
   return (
     <li>
-      <Link href={`/live?stream=${item.name}`}>{item.name}</Link>{' '}
+      <Link href={`/live?stream=${item.name}`} onClick={closeSidebar}>
+        {item.name}
+      </Link>{' '}
       <StatusIndicator online={item.online ?? false} size="small" />
     </li>
   )

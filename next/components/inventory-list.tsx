@@ -3,6 +3,7 @@
 import Link from 'next/link'
 // import { r2PathToRoute } from '@/lib/vod'
 import { useInventory } from './inventory-provider'
+import { useSidebarState } from './sidebar-state-provider'
 
 export default function InventoryList() {
   const { inventoryMap } = useInventory()
@@ -30,7 +31,13 @@ function DayMenu({
   date: string
   inventories: string[]
 }) {
-  return <Link href={`/${date}`}>{date}</Link>
+  const { close: closeSidebar } = useSidebarState()
+
+  return (
+    <Link href={`/${date}`} onClick={closeSidebar}>
+      {date}
+    </Link>
+  )
   /*
   return (
     <details>

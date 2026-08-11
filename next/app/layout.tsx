@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
-import DecentLay from './decent-lay'
+import SidebarStateProvider from '@/components/sidebar-state-provider'
+import Header from './header'
 import InventoryContainer from './inventory-container'
 import css from './layout.module.css'
+import Sidebar, { SidebarBackdrop } from './sidebar'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -32,7 +34,14 @@ export default function RootLayout({
     >
       <body className={css.body}>
         <InventoryContainer>
-          <DecentLay>{children}</DecentLay>
+          <SidebarStateProvider>
+            <div className={css.container}>
+              <Header />
+              <SidebarBackdrop />
+              <Sidebar />
+              <main>{children}</main>
+            </div>
+          </SidebarStateProvider>
         </InventoryContainer>
       </body>
     </html>
