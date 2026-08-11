@@ -7,6 +7,10 @@ import StreamMenu from '@/components/stream-menu'
 import FooterContent from './footer.mdx'
 import css from './sidebar.module.css'
 
+// Keep in mind the checkbox trick:
+// https://dev.to/joxx/toggling-mobile-navigation-visibility-with-css-the-checkbox-hack-7ej
+// (currently using React context)
+
 export default function Sidebar() {
   const { isOpen } = useSidebarState()
 

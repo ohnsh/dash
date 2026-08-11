@@ -1,11 +1,6 @@
 .thumbstrip {
   margin-block-start: 1rem;
 
-  h2 {
-    font-weight: bold;
-    font-size: var(--text-md);
-  }
-
   >ul {
     list-style: none;
     display: flex;
