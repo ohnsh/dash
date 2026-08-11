@@ -3,7 +3,8 @@
   "bin": {
     "mkinventory": "./index.ts",
     "video.sh": "./video.sh",
-    "video.ts": "./video.ts"
+    "video.ts": "./videots_wrapper.sh",
+    "rclone_v": "./rclone_v.sh"
   },
   "devDependencies": {
     "@types/bun": "latest",

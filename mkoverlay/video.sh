@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 script_dir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
-video_ts=$script_dir/video.ts
+video_ts=$script_dir/videots_wrapper.sh
+rclone=$script_dir/rclone_v.sh
 marker=.video.sh_inprogress
 
 lsof_t() {
@@ -29,10 +30,11 @@ maybe_remux() {
     echo "Remuxing $raw" >&2
     ffmpeg \
       -v warning \
+      -xerror \
       -i "$raw" \
       -c copy \
       -movflags +faststart \
-      "$out" && rm "$raw"
+      "$out" && rm "$raw" || return
   else
     mv "$raw" "$out"
   fi
@@ -105,13 +107,22 @@ process_camdir() {
 
     maybe_remux "$raw" "$bn" &&
       [[ -f "$bn" ]] &&
-      mkassets "$bn"
+      mkassets "$bn" ||
+      handle_error "$raw" "$bn"
   done
 
   # do this once per run instead of per file
   sync_camdir &&
     index_inventory &&
     rm "$marker"
+}
+
+handle_error() {
+  local raw=$1 bn=$2
+  mkdir -p "_error"
+  if [[ -f $raw ]]; then
+    mv -v "$raw" "_error"
+  fi
 }
 
 index_inventory() {
@@ -128,7 +139,7 @@ sync_camdir() {
   local camdir=${1:-.}
   echo "Syncing to r2:vod/$r2path" >&2
 
-  rclone copy -L \
+  $rclone copy -L \
     "$camdir" "r2:vod/$r2path" \
     --exclude ".*/**" \
     --exclude "_raw/**" \
@@ -156,11 +167,6 @@ vod() {
     echo "Error: couldn't enter $camdir" >&2
     exit 1
   }
-
-  # rclone credentials
-  set -a
-  . "$script_dir/.env"
-  set +a
 
   process_camdir
 }
