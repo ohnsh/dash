@@ -3,6 +3,7 @@ import type { BunRequest, Server } from 'bun'
 const ALLOWED_ORIGINS = new Set([
   'http://localhost:3000',
   'http://mak.local:3000', // when testing from phone
+  'https://dash-ebon-two.vercel.app',
   'https://dash.ohn.sh',
 ])
 
@@ -16,8 +17,11 @@ export default function withCORS<T>(handler: BunHandler<T>): BunHandler<T> {
   return async (req, server) => {
     const origin = req.headers.get('origin')
     const isAllowed = origin && ALLOWED_ORIGINS.has(origin)
+    // Should probably omit Allow-Origin instead of using wildcard.
+    // But even if I was concered about access control (I'm not), this header
+    // would not make a difference.
     const corsHeaders = {
-      'Access-Control-Allow-Origin': isAllowed ? origin : '',
+      'Access-Control-Allow-Origin': isAllowed ? origin : '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     }
