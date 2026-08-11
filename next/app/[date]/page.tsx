@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { dbQuery } from '@/lib/turso'
 import VodPlayer from '@/components/vod-player'
 import ThumbStrip from '@/components/thumbstrip'
-import { BUCKET_URL } from '@/lib/vod-new'
+import { BUCKET_URL, dateFromFilename } from '@/lib/vod-new'
 import { type Meta, MetaSchema } from '@/lib/vod-schema'
 
 // this can be optimized, especially for days that are over
@@ -27,8 +27,8 @@ export default async function Vod({
   searchParams,
 }: PageProps<'/[date]'>) {
   const { date } = await params
-  // const sp = await searchParams
-  // const v = Array.isArray(sp.v) ? sp.v[0] : sp.v
+  const sp = await searchParams
+  const v = Array.isArray(sp.v) ? sp.v[0] : sp.v
 
   if (!validateDate(date)) {
     notFound()
@@ -39,19 +39,22 @@ export default async function Vod({
     notFound()
   }
 
-  let formattedDate: string
-  try {
-    formattedDate = new Date(date).toLocaleDateString(undefined, {
-      dateStyle: 'long',
-    })
-  } catch {
-    formattedDate = '[invalid date]'
-  }
+  let timestamp = v && dateFromFilename(v)
+
+  if (!timestamp)
+    try {
+      timestamp = new Date(date).toLocaleDateString(undefined, {
+        timeZone: 'utc',
+        dateStyle: 'medium',
+      })
+    } catch {
+      timestamp = '[invalid date]'
+    }
 
   return (
     <div>
       <VodPlayer />
-      <h2>{formattedDate}</h2>
+      <h2>{timestamp}</h2>
       {rows.map((row) => (
         <ServerThumbStrip
           key={row.inventory_path}

@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { use, useEffect, useRef } from 'react'
-import { invPathToComponents, thumbUrl } from '@/lib/vod-new'
+import { invPathToComponents, thumbUrl, timeFromFilename } from '@/lib/vod-new'
 import type { Meta } from '@/lib/vod-schema'
 import css from './thumbstrip.module.css'
 
@@ -46,10 +46,12 @@ export default function ThumbStrip({
       <h3>{cam}</h3>
       <ul ref={stripRef}>
         {inventory.map((item) => {
+          const timestamp = timeFromFilename(item.name)
           const v_href = `${cam}/${item.name}`
           return (
             <Thumbnail
               key={item.name}
+              timestamp={timestamp}
               href={`?v=${v_href}`}
               src={thumbUrl(inventoryPath, item.assets[0])}
               isSelected={v === v_href}
@@ -67,6 +69,7 @@ export default function ThumbStrip({
 function Thumbnail({
   href,
   src,
+  timestamp,
   width,
   height,
   isSelected,
@@ -74,6 +77,7 @@ function Thumbnail({
 }: {
   href: string
   src: string
+  timestamp?: string
   width?: number
   height?: number
   isSelected: boolean
@@ -83,6 +87,7 @@ function Thumbnail({
     <li className={isPortrait ? 'portrait' : 'landscape'}>
       <Link href={href} aria-current={isSelected ? 'page' : undefined}>
         <Image alt="" width={width} height={height} src={src} unoptimized />
+        {timestamp && <span>{timestamp}</span>}
       </Link>
     </li>
   )

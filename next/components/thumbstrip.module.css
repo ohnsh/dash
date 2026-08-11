@@ -13,6 +13,20 @@
       display: inline-block;
       border-radius: var(--radius-sm);
       overflow: clip;
+      position: relative;
+      color: inherit;
+
+      span {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        font-weight: 500;
+        font-size: var(--text-sm);
+        background-color: rgb(0 0 0 / 50%);
+        border-radius: var(--radius-sm);
+        padding: 0 4px;
+        margin: 0 2px 2px 0;
+      }
     }
 
     [aria-current] {
