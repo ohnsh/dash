@@ -1,9 +1,26 @@
 #!/usr/bin/env bash
 
 script_dir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
+script_name=$(basename "$0")
 video_ts=$script_dir/videots_wrapper.sh
 rclone=$script_dir/rclone_v.sh
 marker=.video.sh_inprogress
+
+usage() { cat; } <<EOF
+Usage: $script_name <subcommand> [-n COUNT] DIR
+
+Available Subcommands:
+    vod     Remux fragmented mp4s, generate assets (thumbnails), and sync to R2.
+    watch   Watch a directory where video files are saved, running \`$script_name vod\`
+            periodically.
+    link    Link a directory of archived videos to a workspace with the folder structure
+            expected by \`$script_name vod\`
+
+Options:
+    -n COUNT  Specify the number of items or rounds (default: 1).
+    -h, --help Show this help message.
+
+EOF
 
 lsof_t() {
   local file=$1
@@ -171,6 +188,36 @@ vod() {
   process_camdir
 }
 
+HALF_HOUR=$((60 * 30))
+
+watch() {
+  local camdir=$1
+  local status
+
+  cd "$camdir" || {
+    echo "Error: couldn't enter $camdir" >&2
+    exit 1
+  }
+
+  while true; do
+    if ! process_camdir; then
+      status=$?
+      echo "Error exit status from process_camdir...canceling watch." >&2
+      # Since this will be running constantly, hit a webhook so I get notified.
+      curl -d "$script_name: error; canceling watch" https://ntfy.sh/ohnsh-push
+      # Would be interesting to look into process management options.
+      # For now, it's no big deal if I need to babysit the script a bit.
+      return $?
+    fi
+    # For now, prioritize simplicity and portability.
+    # FS watching will be different between macOS, Alpine, and Debian.
+    # (Video lengths are typically 15-20 min.)
+    echo >&2
+    echo "Sleeping for 30 min..." >&2
+    sleep $HALF_HOUR
+  done
+}
+
 link_dir() {
   local refdir=${1%/}
 
@@ -183,13 +230,13 @@ link_dir() {
   workdir=$(dirname "$refdir")/${refdir}_vod
   mkdir -p "$workdir/_raw"
 
-  # using absolute links instead for now
   # local link_base=../../$(basename "$refdir")
+  # local link_src=$link_base/$(basename "$vid")
+  # using absolute links instead for now
   local link_src
 
   for vid in "$refdir"/*.mp4; do
     [[ -f $vid ]] || continue
-    # link_src=$link_base/$(basename "$vid")
     link_src=$(realpath "$vid")
 
     ln -sv "$link_src" "$workdir/_raw"
@@ -199,13 +246,14 @@ link_dir() {
   echo "run 'cd $workdir && $0 vod .'" >&2
 }
 
-usage() { cat; } <<EOF
-  $0 [-n COUNT] vod|link DIR
-EOF
-
 if [[ $1 == '-n' ]]; then
   count=$2
   shift 2
+fi
+
+if [[ $1 == '-h' ]]; then
+  usage
+  exit 0
 fi
 
 # vod is default command; enforce one directory argument regardless.
@@ -216,6 +264,10 @@ vod)
   ;;
 link)
   cmd=link_dir
+  shift
+  ;;
+watch)
+  cmd=watch
   shift
   ;;
 *)
