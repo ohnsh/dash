@@ -15,7 +15,8 @@ export async function initDb() {
 }
 
 export async function indexInventory(path: string, date: string) {
-  // avoid libsql errors by telling the db to ignore attempts to insert existing rows.
+  // avoid libsql errors by telling the db to ignore the insert if there's an existing
+  // row with inventory_path
   const res = await turso.execute(
     `INSERT INTO vod_index (inventory_path, date)
      VALUES (?, ?)

@@ -2,9 +2,20 @@
 
 script_dir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 script_name=$(basename "$0")
+
+# wrappers ensure credentials from .env are available regardless of how or where the
+# commands are invoked. Considering a single wrapper that uses $0 to detect what to exec
 video_ts=$script_dir/videots_wrapper.sh
 rclone=$script_dir/rclone_v.sh
+
 marker=.video.sh_inprogress
+
+HALF_HOUR=$((60 * 30))
+ONE_MB=$((1024 * 1024))
+MIN_MB=${MIN_MB:-3}
+
+# Skip files smaller than 3 MB (configurable)
+MIN_VID_SIZE=${MIN_VID_SIZE:-$((MIN_MB * ONE_MB))}
 
 usage() { cat; } <<EOF
 Usage: $script_name <subcommand> [-n COUNT] DIR
@@ -14,13 +25,29 @@ Available Subcommands:
     watch   Watch a directory where video files are saved, running \`$script_name vod\`
             periodically.
     link    Link a directory of archived videos to a workspace with the folder structure
-            expected by \`$script_name vod\`
+            expected by \`$script_name vod\`.
 
 Options:
-    -n COUNT  Specify the number of items or rounds (default: 1).
-    -h, --help Show this help message.
+    -n COUNT  Limit directory processing to first n files (for testing).
+    -h        Show this help message.
 
 EOF
+
+log() {
+  printf "%s\t%s\n" "${script_name:-$0}" "$*" >&2
+}
+
+log_notify() {
+  local msg
+  # if running interactively, log to terminal and don't notify
+  if [[ -z $autopilot ]]; then
+    log "$@"
+  else
+    msg=$(log "$@" 2>&1)
+    echo "$msg" >&2
+    curl -d "$msg" https://ntfy.sh/ohnsh-push
+  fi
+}
 
 lsof_t() {
   local file=$1
@@ -39,12 +66,28 @@ is_fragmented() {
   ffprobe -v trace "$mp4" 2>&1 | grep -q "type:'moof'"
 }
 
+get_size() {
+  local mp4=$1
+  [[ -f $mp4 ]] || return 1
+
+  # stat is different on macOS
+  if [[ $OSTYPE == darwin* ]]; then
+    stat -f %z "$mp4"
+  else
+    stat -c %s "$mp4"
+  fi
+}
+
+validate_vid() {
+  [[ $(get_size "$1") -ge "$MIN_VID_SIZE" ]]
+}
+
 maybe_remux() {
   local raw=$1
   local out=$2
 
   if is_fragmented "$raw"; then
-    echo "Remuxing $raw" >&2
+    log "Remuxing $raw"
     ffmpeg \
       -v warning \
       -xerror \
@@ -74,7 +117,7 @@ maybe_remux() {
 
 process_camdir() {
   if [[ ! -d _raw ]]; then
-    echo "Error: process_catdir should be called with the working directory already set, perhaps in a subshell. The working directory must contain a _raw directory where mp4 recordings appear." >&2
+    log "Error: process_catdir should be called with the working directory already set, perhaps in a subshell. The working directory must contain a _raw directory where mp4 recordings appear."
     return 1
   fi
 
@@ -92,7 +135,7 @@ process_camdir() {
   fi
 
   if [[ ! $ym/$day =~ ^[0-9]{4}-[0-9]{2}/[0-9]{2}$ ]]; then
-    echo "Error: parent of working directory ($PWD) should be the date of the recordings (e.g. '$(date -Idate)')." >&2
+    log "Error: parent of working directory ($PWD) should be the date of the recordings (e.g. '$(date -Idate)')."
     return 1
   fi
 
@@ -109,43 +152,54 @@ process_camdir() {
     [[ -f $raw ]] || continue
 
     if lsof_t "$raw" &>/dev/null; then
-      echo "$raw currently open; skipping." >&2
+      log "$raw currently open; skipping."
       continue
     fi
 
     bn=$(basename "$raw")
 
     if [[ -f $bn ]]; then
-      echo "Error: $bn already exists" >&2
+      log "Error: $bn already exists"
       mkdir -p _error
       mv "$raw" _error
       continue
     fi
 
-    maybe_remux "$raw" "$bn" &&
+    if ! validate_vid "$raw"; then
+      log_notify "Invalid recording $raw: smaller than MIN_VID_SIZE. Tossing aside."
+      toss "$raw"
+      continue
+    fi
+
+    if ! maybe_remux "$raw" "$bn" &&
       [[ -f "$bn" ]] &&
-      mkassets "$bn" ||
-      handle_error "$raw" "$bn"
+      [[ ! -f "$raw" ]]; then
+      log_notify "Error processing $raw: remux or move failed. Tossing aside."
+      toss "$raw"
+    fi
+
+    # TODO: handle errors
+    mkassets "$bn"
   done
 
   # do this once per run instead of per file
+  # index_inventory is ignored by the db after the first insert
   sync_camdir &&
     index_inventory &&
     rm "$marker"
 }
 
-handle_error() {
-  local raw=$1 bn=$2
+toss() {
   mkdir -p "_error"
-  if [[ -f $raw ]]; then
-    mv -v "$raw" "_error"
+  if [[ -f $1 ]]; then
+    mv -v "$1" "_error"
   fi
 }
 
 index_inventory() {
   local r2inv=$r2path/inventory.json
 
-  echo "Indexing $r2inv" >&2
+  log "Indexing $r2inv"
   # only update index if we actually have an inventory file
   if [[ -f ./inventory.json ]]; then
     "$video_ts" index "$r2inv"
@@ -154,7 +208,7 @@ index_inventory() {
 
 sync_camdir() {
   local camdir=${1:-.}
-  echo "Syncing to r2:vod/$r2path" >&2
+  log "Syncing to r2:vod/$r2path"
 
   $rclone copy -L \
     "$camdir" "r2:vod/$r2path" \
@@ -172,7 +226,7 @@ mkassets() {
   local video=$1
   mkdir -p "_assets/$video"
 
-  echo "Creating assets for $video" >&2
+  log "Creating assets for $video"
 
   "$video_ts" mkassets "$video"
 }
@@ -181,30 +235,28 @@ vod() {
   local camdir=$1
 
   cd "$camdir" || {
-    echo "Error: couldn't enter $camdir" >&2
+    log "Error: couldn't enter $camdir"
     exit 1
   }
 
   process_camdir
 }
 
-HALF_HOUR=$((60 * 30))
-
 watch() {
+  local autopilot=1
   local camdir=$1
   local status
 
   cd "$camdir" || {
-    echo "Error: couldn't enter $camdir" >&2
+    log "Error: couldn't enter $camdir"
     exit 1
   }
 
   while true; do
     if ! process_camdir; then
       status=$?
-      echo "Error exit status from process_camdir...canceling watch." >&2
       # Since this will be running constantly, hit a webhook so I get notified.
-      curl -d "$script_name: error; canceling watch" https://ntfy.sh/ohnsh-push
+      log_notify "Error exit status from process_camdir...canceling watch."
       # Would be interesting to look into process management options.
       # For now, it's no big deal if I need to babysit the script a bit.
       return $?
@@ -213,7 +265,7 @@ watch() {
     # FS watching will be different between macOS, Alpine, and Debian.
     # (Video lengths are typically 15-20 min.)
     echo >&2
-    echo "Sleeping for 30 min..." >&2
+    log "Sleeping for 30 min..."
     sleep $HALF_HOUR
   done
 }
@@ -222,7 +274,7 @@ link_dir() {
   local refdir=${1%/}
 
   [[ -d $refdir ]] || {
-    echo "Error: $refdir must be an existing directory." >&2
+    log "Error: $refdir must be an existing directory."
     return 1
   }
 
@@ -242,8 +294,8 @@ link_dir() {
     ln -sv "$link_src" "$workdir/_raw"
   done
 
-  echo "$refdir linked to $workdir/_raw" >&2
-  echo "run 'cd $workdir && $0 vod .'" >&2
+  log "$refdir linked to $workdir/_raw"
+  log "run 'cd $workdir && $0 vod .'"
 }
 
 if [[ $1 == '-n' ]]; then
