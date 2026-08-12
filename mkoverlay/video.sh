@@ -37,6 +37,12 @@ log() {
   printf "%s\t%s\n" "${script_name:-$0}" "$*" >&2
 }
 
+notify() {
+  local msg=$1
+  # be quiet
+  curl -fsL -d "$msg" https://ntfy.sh/ohnsh-push &>/dev/null
+}
+
 log_notify() {
   local msg
   # if running interactively, log to terminal and don't notify
@@ -45,7 +51,7 @@ log_notify() {
   else
     msg=$(log "$@" 2>&1)
     echo "$msg" >&2
-    curl -d "$msg" https://ntfy.sh/ohnsh-push
+    notify "$msg"
   fi
 }
 
