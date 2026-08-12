@@ -171,9 +171,11 @@ process_camdir() {
       continue
     fi
 
-    if ! maybe_remux "$raw" "$bn" &&
-      [[ -f "$bn" ]] &&
-      [[ ! -f "$raw" ]]; then
+    if ! {
+      maybe_remux "$raw" "$bn" &&
+        [[ -f "$bn" ]] &&
+        [[ ! -f "$raw" ]]
+    }; then
       log_notify "Error processing $raw: remux or move failed. Tossing aside."
       toss "$raw"
     fi
