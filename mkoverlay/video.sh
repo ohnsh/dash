@@ -34,7 +34,10 @@ Options:
 EOF
 
 log() {
-  printf "%s\t%s\n" "${script_name:-$0}" "$*" >&2
+  printf "[%s %s] %s\n" \
+  "${script_name:-$0}" \
+  "$(date +"%m-%d %T")" \
+  "$*" >&2
 }
 
 notify() {
