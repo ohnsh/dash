@@ -8,7 +8,7 @@
     "gen-openapi-types": "bunx openapi-typescript ./mediamtx-openapi.yaml -o ./mediamtx-openapi.ts"
   },
   "dependencies": {
-    "@biomejs/biome": "^2.5.7",
+    "@biomejs/biome": "^2.5.8",
     "@libsql/client": "^0.17.4",
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
@@ -24,7 +24,7 @@
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
-    "hls.js": "^1.6.17",
+    "hls.js": "^1.6.18",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2"
   },
