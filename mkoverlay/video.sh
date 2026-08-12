@@ -185,7 +185,7 @@ process_camdir() {
   # do this once per run instead of per file
   # index_inventory is ignored by the db after the first insert
   sync_camdir &&
-    index_inventory &&
+    maybe_index_inventory &&
     rm "$marker"
 }
 
@@ -196,13 +196,19 @@ toss() {
   fi
 }
 
-index_inventory() {
+indexed=
+maybe_index_inventory() {
+  [[ -z $indexed ]] || {
+    log "Inventory already indexed; skipping..."
+    return 0
+  }
+
   local r2inv=$r2path/inventory.json
 
   log "Indexing $r2inv"
   # only update index if we actually have an inventory file
   if [[ -f ./inventory.json ]]; then
-    "$video_ts" index "$r2inv"
+    "$video_ts" index "$r2inv" && indexed=1
   fi
 }
 
@@ -255,17 +261,17 @@ watch() {
   while true; do
     if ! process_camdir; then
       status=$?
-      # Since this will be running constantly, hit a webhook so I get notified.
+      # Since this will run all day, hit a webhook so I get notified.
       log_notify "Error exit status from process_camdir...canceling watch."
       # Would be interesting to look into process management options.
       # For now, it's no big deal if I need to babysit the script a bit.
       return $?
     fi
     # For now, prioritize simplicity and portability.
-    # FS watching will be different between macOS, Alpine, and Debian.
+    # FS watching will differ between macOS, Alpine, and Debian.
     # (Video lengths are typically 15-20 min.)
     echo >&2
-    log "Sleeping for 30 min..."
+    log "Sleeping 30 min..."
     sleep $HALF_HOUR
   done
 }
