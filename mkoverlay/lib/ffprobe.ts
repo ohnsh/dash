@@ -64,14 +64,18 @@ export default async function ffprobe(video: string): Promise<FFprobeMetadata> {
 }
 
 export async function testAudio(video: string): Promise<boolean> {
-  // output is `codec_type=audio` when audio is present, blank otherwise.
-  const probe = await $`
+  try {
+    const probe = await $`
     ffprobe -v quiet \
       -select_streams a \
       -show_entries stream=codec_type \
       -of default=noprint_wrappers=1 \
       ${video}
-  `.text()
+    `.text()
 
-  return probe.includes('audio')
+    // output is `codec_type=audio` when audio is present, blank otherwise.
+    return probe.includes('audio')
+  } catch {
+    return false
+  }
 }
