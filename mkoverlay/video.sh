@@ -187,6 +187,7 @@ process_camdir() {
     }; then
       log_notify "Error processing $raw: remux or move failed. Tossing aside."
       toss "$raw"
+      continue
     fi
 
     # TODO: handle errors

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ONE_MB=$((1024 * 1024))
-MIN_MB=${MIN_MB:-2}
+MIN_MB=${MIN_MB:-3}
 MIN_VID_SIZE=${MIN_VID_SIZE:-$((MIN_MB * ONE_MB))}
 
 get_size() {
@@ -17,7 +17,7 @@ get_size() {
 }
 
 # clean up aborted recordings and re-sync inventory.json
-# should be obsolete now that video.sh checks before processing
+# (should be obsolete now that video.sh checks before processing)
 clean() {
   local dir=$1 sz bn
 
