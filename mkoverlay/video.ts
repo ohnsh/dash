@@ -1,20 +1,27 @@
 #!/usr/bin/env bun
 
-import { dirname, join, resolve } from 'node:path'
+import { dirname, join } from 'node:path'
 import { indexInventory } from './lib/db'
-import { type Metadata, pipeline } from './lib/util'
+import { type Metadata, newContext, toMetadata } from './lib/vod-video'
 
 async function mkassets(path: string) {
-  const metadata = await pipeline(path)
+  const ctx = await newContext(path)
+  const metadata = await toMetadata(ctx)
+
   const inventoryPath = join(dirname(path), 'inventory.json')
 
-  const inventory: Metadata[] = await Bun.file(inventoryPath)
-    .json()
-    .catch((_err) => [])
+  let inventory: Metadata[] = []
 
-  const filtered = inventory.filter(({ name }) => name !== metadata.name)
+  if (await Bun.file(inventoryPath).exists()) {
+    // intentionally don't catch errors when the file exists to avoid data loss
+    inventory = await Bun.file(inventoryPath)
+      .json()
+      .then((raw: Metadata[]) =>
+        raw.filter(({ name }) => name !== metadata.name),
+      )
+  }
 
-  const newInventory = [...filtered, metadata].sort((a, b) =>
+  const newInventory = [...inventory, metadata].sort((a, b) =>
     a.name.localeCompare(b.name),
   )
 

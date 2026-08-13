@@ -4,6 +4,7 @@
   "workspaces": [
     "next",
     "dashd",
-    "mkoverlay"
+    "mkoverlay",
+    "voice-detect"
   ]
 }

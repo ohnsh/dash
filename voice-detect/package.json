@@ -1,0 +1,13 @@
+{
+  "name": "voice-detect",
+  "private": true,
+  "type": "module",
+  "module": "./src/voice-detect.ts",
+  "types": "./src/voice-detect.ts",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "dependencies": {
+    "onnxruntime-node": "^1.27.0"
+  }
+}

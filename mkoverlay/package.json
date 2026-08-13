@@ -1,5 +1,7 @@
 {
   "name": "mkoverlay",
+  "private": true,
+  "type": "module",
   "bin": {
     "mkinventory": "./index.ts",
     "video.sh": "./video.sh",
@@ -13,6 +15,7 @@
   "dependencies": {
     "@libsql/client": "^0.17.4",
     "temporal-polyfill": "^1.0.2",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "voice-detect": "workspace:*"
   }
 }

@@ -30,6 +30,7 @@ type FFprobeOutput = z.infer<typeof ffprobeSchema>
 export type FFprobeMetadata = FFprobeOutput['streams'][number] & {
   isPortrait: boolean
   isHDR: boolean
+  hasAudio: boolean
 }
 
 export default async function ffprobe(video: string): Promise<FFprobeMetadata> {
@@ -57,6 +58,20 @@ export default async function ffprobe(video: string): Promise<FFprobeMetadata> {
   const isNominallyPortrait = width < height
   const isPortrait = isNominallyPortrait !== isRotated
   const isHDR = ['arib-std-b67', 'smpte2084'].includes(color_transfer)
+  const hasAudio = await testAudio(video)
 
-  return { ...meta_ffprobe, isPortrait, isHDR }
+  return { ...meta_ffprobe, isPortrait, isHDR, hasAudio }
+}
+
+export async function testAudio(video: string): Promise<boolean> {
+  // output is `codec_type=audio` when audio is present, blank otherwise.
+  const probe = await $`
+    ffprobe -v quiet \
+      -select_streams a \
+      -show_entries stream=codec_type \
+      -of default=noprint_wrappers=1 \
+      ${video}
+  `.text()
+
+  return probe.includes('audio')
 }

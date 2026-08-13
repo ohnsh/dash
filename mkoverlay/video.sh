@@ -80,10 +80,11 @@ get_size() {
   [[ -f $mp4 ]] || return 1
 
   # stat is different on macOS
+  # follow links!
   if [[ $OSTYPE == darwin* ]]; then
-    stat -f %z "$mp4"
+    stat -Lf %z "$mp4"
   else
-    stat -c %s "$mp4"
+    stat -Lc %s "$mp4"
   fi
 }
 
@@ -190,8 +191,9 @@ process_camdir() {
       continue
     fi
 
-    # TODO: handle errors
-    mkassets "$bn"
+    if ! mkassets "$bn"; then
+      log_notify "Error creating assets for $bn... Continuing."
+    fi
   done
 
   # do this once per run instead of per file
@@ -230,9 +232,10 @@ sync_camdir() {
 
   $rclone copy -L \
     "$camdir" "r2:vod/$r2path" \
+    --exclude ".*" \
     --exclude ".*/**" \
     --exclude "_raw/**" \
-    --exclude ".DS_Store"
+    --exclude "_error/**"
 }
 
 # could limit env loading to subshell
