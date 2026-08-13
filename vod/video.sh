@@ -35,9 +35,9 @@ EOF
 
 log() {
   printf "[%s %s] %s\n" \
-  "${script_name:-$0}" \
-  "$(date +"%m-%d %T")" \
-  "$*" >&2
+    "${script_name:-$0}" \
+    "$(date +"%m-%d %T")" \
+    "$*" >&2
 }
 
 notify() {
@@ -98,7 +98,7 @@ maybe_remux() {
 
   if is_fragmented "$raw"; then
     log "Remuxing $raw"
-      # -xerror \
+    # -xerror \
     ffmpeg \
       -v warning \
       -i "$raw" \
@@ -170,14 +170,13 @@ process_camdir() {
 
     if [[ -f $bn ]]; then
       log "Error: $bn already exists"
-      mkdir -p _error
-      mv "$raw" _error
+      toss "$raw" dup
       continue
     fi
 
     if ! validate_vid "$raw"; then
       log_notify "Invalid recording $raw: smaller than MIN_VID_SIZE. Tossing aside."
-      toss "$raw"
+      toss "$raw" size
       continue
     fi
 
@@ -187,12 +186,13 @@ process_camdir() {
         [[ ! -f "$raw" ]]
     }; then
       log_notify "Error processing $raw: remux or move failed. Tossing aside."
-      toss "$raw"
+      toss "$raw" remux
       continue
     fi
 
     if ! mkassets "$bn"; then
       log_notify "Error creating assets for $bn... Continuing."
+      toss "$bn" assets
     fi
   done
 
@@ -204,9 +204,10 @@ process_camdir() {
 }
 
 toss() {
-  mkdir -p "_error"
-  if [[ -f $1 ]]; then
-    mv -v "$1" "_error"
+  local file=$1 error=$2
+  mkdir -p "_error_$error"
+  if [[ -f $file ]]; then
+    mv -v "$file" "_error_$error"
   fi
 }
 
@@ -235,6 +236,7 @@ sync_camdir() {
     --exclude ".*" \
     --exclude ".*/**" \
     --exclude "_raw/**" \
+    --exclude "_error/**" \
     --exclude "_error/**"
 }
 
@@ -255,11 +257,7 @@ mkassets() {
 vod() {
   local camdir=$1
 
-  cd "$camdir" || {
-    log "Error: couldn't enter $camdir"
-    exit 1
-  }
-
+  cd "$camdir" || exit 1
   process_camdir
 }
 
@@ -268,10 +266,7 @@ watch() {
   local camdir=$1
   local status
 
-  cd "$camdir" || {
-    log "Error: couldn't enter $camdir"
-    exit 1
-  }
+  cd "$camdir" || exit 1
 
   while true; do
     if ! process_camdir; then
@@ -288,6 +283,24 @@ watch() {
     echo >&2
     log "Sleeping 30 min..."
     sleep $HALF_HOUR
+  done
+}
+
+reset() {
+  local camdir=$1
+  local -a aborted
+  cd "$camdir" || exit 1
+
+  # list lines not in common
+  readarray -t aborted < <(
+    cat \
+      <(jq -r '.[] | .name' <inventory.json) \
+      <(printf '%s\n' *.mp4) |
+      sort | uniq -u
+  )
+
+  for mp4 in "${aborted[@]}"; do
+    toss "$mp4" asset
   done
 }
 
@@ -341,6 +354,10 @@ link)
   ;;
 watch)
   cmd=watch
+  shift
+  ;;
+reset)
+  cmd=reset
   shift
   ;;
 *)
