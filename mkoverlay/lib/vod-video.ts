@@ -1,5 +1,5 @@
 import { basename, dirname, join } from 'node:path'
-import voiceDetect, { type VoiceResult } from 'voice-detect'
+import type { VoiceResult } from 'voice-detect'
 import exiftool, { type ExiftoolMetadata } from './exiftool'
 import ffprobe, { type FFprobeMetadata } from './ffprobe'
 import { mkthumb } from './mkassets'
@@ -99,8 +99,15 @@ export async function attachVoiceSegments(ctx: VODVideo) {
   if (!hasAudio) {
     return ctx
   }
-  const voiceSegments = await voiceDetect(ctx.path)
-  return { ...ctx, voiceSegments }
+
+  // could import earlier to avoid doing any work if onnxruntime won't load
+  try {
+    const { default: voiceDetect } = await import('voice-detect')
+    const voiceSegments = await voiceDetect(ctx.path)
+    return { ...ctx, voiceSegments }
+  } catch {
+    return ctx
+  }
 }
 
 type CompleteVODVideo = Pick<VODVideo, 'voiceSegments'> &

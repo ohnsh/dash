@@ -98,9 +98,9 @@ maybe_remux() {
 
   if is_fragmented "$raw"; then
     log "Remuxing $raw"
+      # -xerror \
     ffmpeg \
       -v warning \
-      -xerror \
       -i "$raw" \
       -c copy \
       -movflags +faststart \
