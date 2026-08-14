@@ -134,7 +134,10 @@ process_camdir() {
   # extract date and camera/category information from path
   local ymd day ym cam=${PWD##*/}
   ymd=$(cd .. && basename "$PWD")
+  # the _vod suffix is added by `link` subcommand
   cam=${cam%_vod}
+  # controversially remove leading underscore
+  cam=${cam#_}
 
   if [[ $ymd =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
     day=${ymd##*-}
