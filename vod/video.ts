@@ -49,11 +49,16 @@ async function index(inventoryPath: string) {
     return sum + (speechTotal ?? Math.round(duration * speechRatio))
   }, 0)
 
-  db.insert(inventoriesTable).values({
-    inventoryPath,
-    date: `${yearMo}-${day}`,
-    speechTotal,
-  })
+  db.insert(inventoriesTable)
+    .values({
+      inventoryPath,
+      date: `${yearMo}-${day}`,
+      speechTotal,
+    })
+    .onConflictDoUpdate({
+      target: inventoriesTable.inventoryPath,
+      set: { speechTotal },
+    })
 }
 
 const [, , cmd, arg] = Bun.argv
