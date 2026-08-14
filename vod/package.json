@@ -10,6 +10,10 @@
     "./db/*": {
       "types": "./db/*.ts",
       "import": "./db/*.ts"
+    },
+    "./schema": {
+      "types": "./lib/schema.ts",
+      "import": "./lib/schema.ts"
     }
   },
   "bin": {

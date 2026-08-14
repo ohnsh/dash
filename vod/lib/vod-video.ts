@@ -1,24 +1,17 @@
 import { basename, dirname, join } from 'node:path'
 import type { VoiceResult } from 'voice-detect'
-import exiftool, { type ExiftoolMetadata } from './exiftool'
-import ffprobe, { type FFprobeMetadata } from './ffprobe'
+import exiftool, { type ExiftoolProbe } from './exiftool'
+import ffprobe, { type FFprobeStream } from './ffprobe'
 import { mkthumb } from './mkassets'
+import type { VODVideo } from './schema'
 
-export interface VODVideo {
+export interface VODVideoContext {
   path: string
+  name: string
   type: 'hls' | 'mp4' | 'mov'
   assets?: string[]
-  exiftoolData?: ExiftoolMetadata
-  ffprobeData?: FFprobeMetadata
-  voiceSegments?: VoiceResult
-}
-
-export interface Metadata {
-  type: 'mp4' | 'mov' | 'hls'
-  name: string
-  assets: string[]
-  meta_exiftool: ExiftoolMetadata
-  meta_ffprobe: FFprobeMetadata
+  exiftoolData?: ExiftoolProbe
+  ffprobeData?: FFprobeStream
   voiceSegments?: VoiceResult
 }
 
@@ -34,7 +27,7 @@ export const getVideoType = (name: string): VODVideo['type'] => {
   throw new Error(`Invalid video type ${type}`)
 }
 
-export async function newContext(path: string): Promise<VODVideo> {
+export async function newContext(path: string): Promise<VODVideoContext> {
   if (!isVideoFile(path)) {
     throw new Error(`Invalid video file: ${path}`)
   }
@@ -43,10 +36,10 @@ export async function newContext(path: string): Promise<VODVideo> {
     throw new Error(`Video file doesn't exist: ${path}`)
   }
 
-  return { path, type: getVideoType(path) }
+  return { path, name: basename(path), type: getVideoType(path) }
 }
 
-export async function attachMetadata(ctx: VODVideo) {
+export async function attachMetadata(ctx: VODVideoContext) {
   if (ctx.exiftoolData && ctx.ffprobeData) {
     return ctx
   }
@@ -66,7 +59,7 @@ export async function attachMetadata(ctx: VODVideo) {
 const getAssetDir = (path: string) =>
   join(dirname(path), '_assets', basename(path))
 
-export async function attachAssets(ctx: VODVideo) {
+export async function attachAssets(ctx: VODVideoContext) {
   if (ctx.assets) {
     return ctx
   }
@@ -87,7 +80,7 @@ export async function attachAssets(ctx: VODVideo) {
 //   .then((list) => list.map((name) => join(assetDir, name)))
 //   .catch((_e) => [] as string[])
 
-export async function attachVoiceSegments(ctx: VODVideo) {
+export async function attachVoiceSegments(ctx: VODVideoContext) {
   if (ctx.voiceSegments) {
     return ctx
   }
@@ -110,10 +103,12 @@ export async function attachVoiceSegments(ctx: VODVideo) {
   }
 }
 
-type CompleteVODVideo = Pick<VODVideo, 'voiceSegments'> &
-  Required<Omit<VODVideo, 'voiceSegments'>>
+type CompleteVODVideoContext = Pick<VODVideoContext, 'voiceSegments'> &
+  Required<Omit<VODVideoContext, 'voiceSegments'>>
 
-export async function videoPipeline(ctx: VODVideo): Promise<CompleteVODVideo> {
+export async function videoPipeline(
+  ctx: VODVideoContext,
+): Promise<CompleteVODVideoContext> {
   ctx = await attachMetadata(ctx)
 
   const [assetCtx, voiceCtx] = await Promise.all([
@@ -136,12 +131,12 @@ export async function videoPipeline(ctx: VODVideo): Promise<CompleteVODVideo> {
   }
 }
 
-export async function toMetadata(ctx: VODVideo): Promise<Metadata> {
-  const { path, type, assets, ffprobeData, exiftoolData, voiceSegments } =
+export async function toMetadata(ctx: VODVideoContext): Promise<VODVideo> {
+  const { name, type, assets, ffprobeData, exiftoolData, voiceSegments } =
     await videoPipeline(ctx)
 
   return {
-    name: basename(path),
+    name,
     type,
     assets,
     meta_ffprobe: ffprobeData,

@@ -1,7 +1,8 @@
 import { $ } from 'bun'
+import { exiftoolSchema } from './schema'
 
-const opts = ['-api', 'QuickTimeUTC', '-j']
-const tags = [
+const OPTS = ['-api', 'QuickTimeUTC', '-j']
+const TAGS = [
   '-FileSize',
   '-MIMEType',
   '-CreateDate',
@@ -20,10 +21,11 @@ const tags = [
   '-AudioSampleRate',
 ]
 
-export type ExiftoolMetadata = Record<string, string | number>
-
 export default (video: string) =>
-  $`exiftool ${opts} ${tags} ${video}`.json().then(wrangle)
+  $`exiftool ${OPTS} ${TAGS} ${video}`
+    .json()
+    .then(wrangle)
+    .then(exiftoolSchema.parse)
 
 // Transform exiftool output. Currently just camelCases property names.
 function wrangle([exiftool_output]: [Record<string, string | number>]) {

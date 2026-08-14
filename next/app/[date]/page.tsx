@@ -4,8 +4,7 @@ import { db, invs } from '@/lib/turso'
 import { eq } from 'drizzle-orm'
 import VodPlayer from '@/components/vod-player'
 import ThumbStrip from '@/components/thumbstrip'
-import { BUCKET_URL, dateFromFilename } from '@/lib/vod-new'
-import { type Meta, MetaSchema } from '@/lib/vod-schema'
+import { dateFromFilename, fetchInventory } from '@/lib/vod-new'
 
 // this can be optimized, especially for days that are over
 // const getInventories = unstable_cache(
@@ -70,9 +69,7 @@ export default async function Vod({
 
 function ServerThumbStrip({ inventoryPath }: { inventoryPath: string }) {
   // TODO: cache when the inventory is more than a day or two old.
-  const inventory: Promise<Meta[]> = fetch(new URL(inventoryPath, BUCKET_URL))
-    .then((r) => r.json())
-    .then((items) => items.map(MetaSchema.parse))
+  const inventory = fetchInventory(inventoryPath)
 
   return (
     <ThumbStrip inventoryPromise={inventory} inventoryPath={inventoryPath} />

@@ -1,7 +1,27 @@
 import { $ } from 'bun'
 import { z } from 'zod'
+import type { FFprobeStream } from './schema'
 
-const ffprobeSchema = z.object({
+// define the metadata we're probing
+const STREAM_ENTRIES = [
+  'width',
+  'height',
+  'nb_frames',
+  'duration',
+  'r_frame_rate',
+  'bit_rate',
+  'pix_fmt',
+  'color_space',
+  'color_transfer',
+  'color_primaries',
+]
+
+const STREAM_SIDE_ENTRIES = ['rotation']
+
+const ENTRIES = `stream=${STREAM_ENTRIES.join(',')}:stream_side_data=${STREAM_SIDE_ENTRIES.join(',')}`
+
+// command output, given the argument above
+const ffprobeOutputSchema = z.object({
   streams: z.array(
     z.object({
       width: z.coerce.number(),
@@ -25,30 +45,17 @@ const ffprobeSchema = z.object({
   ),
 })
 
-type FFprobeOutput = z.infer<typeof ffprobeSchema>
-
-export type FFprobeMetadata = FFprobeOutput['streams'][number] & {
-  isPortrait: boolean
-  isHDR: boolean
-  hasAudio: boolean
-}
-
-export default async function ffprobe(video: string): Promise<FFprobeMetadata> {
-  const ENTRIES =
-    'stream=width,height,nb_frames,duration,r_frame_rate,bit_rate,pix_fmt' +
-    ',color_space,color_transfer,color_primaries' +
-    ':stream_side_data=rotation'
-
+export default async function ffprobe(video: string): Promise<FFprobeStream> {
   const result = await $`
-  ffprobe -v error \
-    -select_streams v:0 \
-    -show_entries ${ENTRIES} \
-    -of json \
-    ${video}`
+    ffprobe -v error \
+      -select_streams v:0 \
+      -show_entries ${ENTRIES} \
+      -of json \
+      ${video}`
     .json()
-    .then((out) => ffprobeSchema.parse(out))
+    .then(ffprobeOutputSchema.parse)
 
-  const [meta_ffprobe] = result.streams
+  const meta_ffprobe = result.streams[0]
   if (!meta_ffprobe) {
     throw new Error('ffprobe did not produce stream metadata')
   }
@@ -66,12 +73,12 @@ export default async function ffprobe(video: string): Promise<FFprobeMetadata> {
 export async function testAudio(video: string): Promise<boolean> {
   try {
     const probe = await $`
-    ffprobe -v quiet \
-      -select_streams a \
-      -show_entries stream=codec_type \
-      -of default=noprint_wrappers=1 \
-      ${video}
-    `.text()
+      ffprobe -v quiet \
+        -select_streams a \
+        -show_entries stream=codec_type \
+        -of default=noprint_wrappers=1 \
+        ${video}
+      `.text()
 
     // output is `codec_type=audio` when audio is present, blank otherwise.
     return probe.includes('audio')

@@ -1,4 +1,14 @@
+import { type VODVideo, vodVideoSchema } from 'dash-vod/schema'
+
 export const BUCKET_URL = process.env.BUCKET_URL || 'https://vod.ohn.sh'
+
+export async function fetchInventory(
+  inventoryPath: string,
+): Promise<VODVideo[]> {
+  return fetch(new URL(inventoryPath, BUCKET_URL))
+    .then((r) => r.json())
+    .then((items) => items.map(vodVideoSchema.parse))
+}
 
 export function invPathToComponents(inventoryPath: string) {
   const [yearMo, day, cam, ...rest] = inventoryPath.split('/')

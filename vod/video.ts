@@ -3,7 +3,8 @@
 import { dirname, join } from 'node:path'
 import { db } from './db'
 import { inventoriesTable } from './db/schema'
-import { type Metadata, newContext, toMetadata } from './lib/vod-video'
+import { type VODVideo, vodVideoSchema } from './lib/schema'
+import { newContext, toMetadata } from './lib/vod-video'
 
 function log(msg: string) {
   const stamp = new Date()
@@ -23,14 +24,15 @@ async function mkassets(path: string) {
 
   const inventoryPath = join(dirname(path), 'inventory.json')
 
-  let inventory: Metadata[] = []
+  let inventory: VODVideo[] = []
 
   if (await Bun.file(inventoryPath).exists()) {
     // intentionally don't catch errors when the file exists to avoid data loss
     inventory = await Bun.file(inventoryPath)
       .json()
-      .then((raw: Metadata[]) =>
-        raw.filter(({ name }) => name !== metadata.name),
+      .then((raw) => raw.map(vodVideoSchema.parse))
+      .then((all: VODVideo[]) =>
+        all.filter(({ name }) => name !== metadata.name),
       )
   }
 
@@ -53,7 +55,9 @@ async function index(inventoryPath: string) {
     throw new Error(`Couldn't derive date from path ${inventoryPath}`)
   }
 
-  const json: Metadata[] = await Bun.file('inventory.json').json()
+  const json: VODVideo[] = await Bun.file('inventory.json')
+    .json()
+    .then((raw) => raw.map(vodVideoSchema.parse))
 
   const speechTotal = json.reduce((sum, current) => {
     if (!current.voiceSegments) return sum

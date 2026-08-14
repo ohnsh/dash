@@ -1,18 +1,18 @@
 'use client'
 
+import type { VODVideo } from 'dash-vod/schema'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { use, useEffect, useRef } from 'react'
 import { invPathToComponents, thumbUrl, timeFromFilename } from '@/lib/vod-new'
-import type { Meta } from '@/lib/vod-schema'
 import css from './thumbstrip.module.css'
 
 export default function ThumbStrip({
   inventoryPromise,
   inventoryPath,
 }: {
-  inventoryPromise: Promise<Meta[]>
+  inventoryPromise: Promise<VODVideo[]>
   inventoryPath: string
 }) {
   const inventory = use(inventoryPromise)

@@ -24,6 +24,14 @@ export default function InventoryList() {
   )
 }
 
+function isoDateToTitle(date: string) {
+  return new Date(date).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'utc',
+  })
+}
+
 function DayMenu({
   date,
   inventories,
@@ -35,7 +43,7 @@ function DayMenu({
 
   return (
     <Link href={`/${date}`} onClick={closeSidebar}>
-      {date}
+      {isoDateToTitle(date)}
     </Link>
   )
   /*
