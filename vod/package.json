@@ -8,14 +8,21 @@
     "video.ts": "./videots_wrapper.sh",
     "rclone_v": "./rclone_v.sh"
   },
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
+  },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/node": "^26.1.2"
+    "@types/node": "^26.1.2",
+    "drizzle-kit": "^1.0.0-rc.4"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
+    "drizzle-orm": "^1.0.0-rc.4",
     "temporal-polyfill": "^1.0.2",
-    "zod": "^4.4.3",
-    "voice-detect": "workspace:*"
+    "voice-detect": "workspace:*",
+    "zod": "^4.4.3"
   }
 }

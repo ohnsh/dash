@@ -1,0 +1,114 @@
+{
+  "dialect": "sqlite",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "prevIds": [],
+  "version": "7",
+  "ddl": [
+    {
+      "name": "vod_index",
+      "entityType": "tables"
+    },
+    {
+      "name": "inventories",
+      "entityType": "tables"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "inventory_path",
+      "entityType": "columns",
+      "table": "vod_index"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "inventories"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "date",
+      "entityType": "columns",
+      "table": "vod_index"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "inventory_path",
+      "entityType": "columns",
+      "table": "inventories"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "date",
+      "entityType": "columns",
+      "table": "inventories"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "table": "inventories"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "name": "speech_total",
+      "entityType": "columns",
+      "table": "inventories"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "inventories_pk",
+      "table": "inventories",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "inventory_path"
+      ],
+      "nameExplicit": false,
+      "name": "vod_index_inventory_path_unique",
+      "entityType": "uniques",
+      "table": "vod_index"
+    },
+    {
+      "columns": [
+        "inventory_path"
+      ],
+      "nameExplicit": false,
+      "name": "inventories_inventory_path_unique",
+      "entityType": "uniques",
+      "table": "inventories"
+    }
+  ],
+  "renames": []
+}

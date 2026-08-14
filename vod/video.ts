@@ -1,7 +1,8 @@
 #!/usr/bin/env bun
 
 import { dirname, join } from 'node:path'
-import { indexInventory } from './lib/db'
+import { db } from './db'
+import { inventoriesTable } from './db/schema'
 import { type Metadata, newContext, toMetadata } from './lib/vod-video'
 
 async function mkassets(path: string) {
@@ -40,7 +41,19 @@ async function index(inventoryPath: string) {
     throw new Error(`Couldn't derive date from path ${inventoryPath}`)
   }
 
-  indexInventory(inventoryPath, `${yearMo}-${day}`)
+  const json: Metadata[] = await Bun.file('inventory.json').json()
+
+  const speechTotal = json.reduce((sum, current) => {
+    if (!current.voiceSegments) return sum
+    const { speechTotal, duration, speechRatio } = current.voiceSegments
+    return sum + (speechTotal ?? Math.round(duration * speechRatio))
+  }, 0)
+
+  db.insert(inventoriesTable).values({
+    inventoryPath,
+    date: `${yearMo}-${day}`,
+    speechTotal,
+  })
 }
 
 const [, , cmd, arg] = Bun.argv

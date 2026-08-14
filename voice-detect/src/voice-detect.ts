@@ -6,6 +6,7 @@ export type { VoiceSegment }
 export interface VoiceResult {
   duration: number
   speechRatio: number
+  speechTotal: number
   params: VADParams
   segments: VoiceSegment[]
 }
@@ -74,7 +75,7 @@ const modelPath = `${import.meta.dir}/../onnx/silero_vad.onnx`
 export default async function voiceDetect(
   mediaPath: string,
   { shouldTestForAudio = false } = {},
-) {
+): Promise<VoiceResult> {
   if (shouldTestForAudio) {
     const hasAudio = await testAudio(mediaPath)
     if (!hasAudio) {
@@ -106,6 +107,7 @@ export default async function voiceDetect(
   return {
     duration,
     speechRatio,
+    speechTotal,
     params,
     segments,
   }
