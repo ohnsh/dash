@@ -4,7 +4,8 @@ import { db, invs } from '@/lib/turso'
 import { eq } from 'drizzle-orm'
 import VodPlayer from '@/components/vod-player'
 import ThumbStrip from '@/components/thumbstrip'
-import { dateFromFilename, fetchInventory } from '@/lib/vod-new'
+import { fetchInventory, invPathToData } from '@/lib/dash-video'
+import { timestampFromFilename, tsToDateString } from '@/lib/vod-new'
 
 // this can be optimized, especially for days that are over
 // const getInventories = unstable_cache(
@@ -12,15 +13,6 @@ import { dateFromFilename, fetchInventory } from '@/lib/vod-new'
 //   { revalidate: false },
 const getInventories = async (date: string) =>
   db.select().from(invs).where(eq(invs.date, date))
-
-//   return await dbQuery({
-//     sql: `
-//       SELECT inventory_path, date
-//       FROM vod_index
-//       WHERE date = ?`,
-//     args: [date],
-//   })
-// }
 
 const validateDate = (date: string) => /\d{4}-\d{2}-\d{2}/.test(date)
 
@@ -41,37 +33,27 @@ export default async function Vod({
     notFound()
   }
 
-  let timestamp = v && dateFromFilename(v)
-
-  if (!timestamp)
-    try {
-      timestamp = new Date(date).toLocaleDateString(undefined, {
-        timeZone: 'utc',
-        dateStyle: 'medium',
-      })
-    } catch {
-      timestamp = '[invalid date]'
-    }
+  const timestamp = (v && timestampFromFilename(v)) || date
+  let fmtTime: string
+  try {
+    fmtTime = tsToDateString(timestamp, undefined, {
+      dateStyle: 'medium',
+    })
+  } catch {
+    fmtTime = '[invalid date]'
+  }
 
   return (
     <div>
       <VodPlayer />
-      <h2>{timestamp}</h2>
+      <h2>{fmtTime}</h2>
       {rows.map((row) => (
-        <ServerThumbStrip
+        <ThumbStrip
           key={row.inventoryPath}
-          inventoryPath={row.inventoryPath}
+          videosPromise={fetchInventory(row.inventoryPath)}
+          title={invPathToData(row.inventoryPath).cam}
         />
       ))}
     </div>
-  )
-}
-
-function ServerThumbStrip({ inventoryPath }: { inventoryPath: string }) {
-  // TODO: cache when the inventory is more than a day or two old.
-  const inventory = fetchInventory(inventoryPath)
-
-  return (
-    <ThumbStrip inventoryPromise={inventory} inventoryPath={inventoryPath} />
   )
 }

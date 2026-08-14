@@ -1,26 +1,19 @@
 'use client'
 
-import { usePathname, useSearchParams } from 'next/navigation'
-import { useEffect, useRef } from 'react'
-import { BUCKET_URL } from '@/lib/vod'
+import { use, useEffect, useRef } from 'react'
+import type { DashVideo } from '@/lib/dash-video'
 import css from './vod-player.module.css'
 
-function getSrc(pathname: string, v: string) {
-  const [, date] = pathname.split('/')
-  const [year, mo, day] = date.split('-')
-  const r2date = `${year}-${mo}/${day}`
-  // const r2date = date.replace(/-(?=\d{2}$)/, '/')
-
-  return `${BUCKET_URL}/${r2date}/${v}`
-}
-
-export default function VodPlayer({ src }: { src?: string }) {
-  const pathname = usePathname()
-  const sParams = useSearchParams()
+export default function VodPlayer({
+  src,
+  videoPromise,
+}: {
+  src?: string
+  videoPromise?: Promise<DashVideo | undefined>
+}) {
+  const dv = videoPromise && use(videoPromise)
   const videoRef = useRef<HTMLVideoElement>(null)
-
-  const v = sParams.get('v')
-  src ??= v ? getSrc(pathname, v) : undefined
+  src ??= dv?.src
 
   useEffect(() => {
     const video = videoRef.current

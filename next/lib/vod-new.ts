@@ -1,34 +1,46 @@
-import { type VODVideo, vodVideoSchema } from 'dash-vod/schema'
-
 export const BUCKET_URL = process.env.BUCKET_URL || 'https://vod.ohn.sh'
 
-export async function fetchInventory(
-  inventoryPath: string,
-): Promise<VODVideo[]> {
-  return fetch(new URL(inventoryPath, BUCKET_URL))
-    .then((r) => r.json())
-    .then((items) => items.map(vodVideoSchema.parse))
+export async function paramsToSrc(
+  searchParams: Promise<{ v?: string | string[] | undefined }>,
+  params?: Promise<{ date?: string }>,
+) {
+  if (!params) return
+  const { date } = await params
+  let { v } = await searchParams
+  if (Array.isArray(v)) {
+    v = v[0]
+  }
+
+  // TODO: finish
+  if (date) {
+    const [year, mo, day] = date.split('-')
+    const r2date = `${year}-${mo}/${day}`
+    // const r2date = date.replace(/-(?=\d{2}$)/, '/')
+    return `${BUCKET_URL}/${r2date}/${v}`
+  }
 }
+
+// function getSrc(pathname: string, v: string) {
+//   const [, date] = pathname.split('/')
+//   const [year, mo, day] = date.split('-')
+//   const r2date = `${year}-${mo}/${day}`
+//   // const r2date = date.replace(/-(?=\d{2}$)/, '/')
+
+//   return `${BUCKET_URL}/${r2date}/${v}`
+// }
 
 export function invPathToComponents(inventoryPath: string) {
   const [yearMo, day, cam, ...rest] = inventoryPath.split('/')
-  return { date: `${yearMo}-${day}`, cam, rest }
-}
-
-export function invPathToBaseUrl(inventoryPath: string) {
-  const path = inventoryPath.replace(/\/[^/]+$/, '')
-  return new URL(path, BUCKET_URL)
-}
-
-export function thumbUrl(inventoryPath: string, assetPath: string) {
-  return `${invPathToBaseUrl(inventoryPath)}/${assetPath}`
+  // leave out literal 'inventory.json'
+  const trailer = rest.slice(0, -1)
+  return { date: `${yearMo}-${day}`, cam, trailer }
 }
 
 // made seconds optional, even though I don't expect it to ever matter.
 const filenameDateMatcher =
   /(?<=^|\D)(?<year>\d{4})[-_]?(?<month>\d{2})[-_]?(?<day>\d{2})[_T\W]{1,3}(?<hours>\d{2})[-_:]?(?<minutes>\d{2})[-_:]?(?<seconds>\d{2})?(?=\D|$)/
 
-function dateObjectFromFilename(filename: string) {
+export function timestampFromFilename(filename: string) {
   const match = filename.match(filenameDateMatcher)
   if (!match?.groups) {
     console.error(`getTimestamp could not match ${filename}`)
@@ -41,34 +53,29 @@ function dateObjectFromFilename(filename: string) {
   // make more sense to parse and interpret in local time.
   const isoDate = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}Z`
   try {
-    return new Date(isoDate)
+    return new Date(isoDate).toISOString()
   } catch {
     console.error(`failed to construct Date object from ${isoDate}`)
     return undefined
   }
 }
 
-type StyleParam = 'full' | 'long' | 'medium' | 'short'
-
-export function timeFromFilename(
-  filename: string,
-  { timeStyle = 'short' }: { timeStyle?: StyleParam } = {},
-) {
-  const date = dateObjectFromFilename(filename)
-  return date?.toLocaleTimeString('en-US', { timeZone: 'utc', timeStyle })
+export function tsToDateString(
+  timestamp: string,
+  ...[locale, opts]: Parameters<Date['toLocaleDateString']>
+): string {
+  return new Date(timestamp).toLocaleDateString(locale, {
+    ...opts,
+    timeZone: 'utc',
+  })
 }
 
-export function dateFromFilename(
-  filename: string,
-  {
-    timeStyle = 'medium',
-    dateStyle = 'medium',
-  }: { timeStyle?: StyleParam; dateStyle?: StyleParam } = {},
-) {
-  const date = dateObjectFromFilename(filename)
-  return date?.toLocaleString('en-US', {
+export function tsToTimeString(
+  timestamp: string,
+  ...[locale, opts]: Parameters<Date['toLocaleTimeString']>
+): string {
+  return new Date(timestamp).toLocaleTimeString(locale, {
+    ...opts,
     timeZone: 'utc',
-    timeStyle,
-    dateStyle,
   })
 }
