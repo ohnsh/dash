@@ -8,31 +8,31 @@ import {
   useMemo,
   useState,
 } from 'react'
-import type { IndexRow } from '@/lib/turso'
+import type { InventoryRecord } from '@/lib/turso'
 
 export type InventoryMap = Record<string, string[] | undefined>
 
 export interface InventoryContext {
   inventoryMap: InventoryMap | undefined
-  setInventories: (i: IndexRow[]) => void
+  setInventories: (i: InventoryRecord[]) => void
   toggleFilter: () => void
 }
 
 const InventoryContext = createContext<InventoryContext | undefined>(undefined)
 
-const defaultFilter = (i: IndexRow[]) =>
-  i.filter(({ inventory_path }) => !inventory_path.includes('/_wyze_bed'))
+const defaultFilter = (i: InventoryRecord[]) =>
+  i.filter(({ inventoryPath }) => !inventoryPath.match(/[/]_?wyze_bed/))
 
 export default function InventoryProvider({
   inventories: initialInventories,
   filter = defaultFilter,
   children,
 }: {
-  inventories?: IndexRow[]
-  filter?: (i: IndexRow[]) => IndexRow[]
+  inventories?: InventoryRecord[]
+  filter?: (i: InventoryRecord[]) => InventoryRecord[]
   children: React.ReactNode
 }) {
-  const [inventories, setInventories] = useState<IndexRow[] | undefined>(
+  const [inventories, setInventories] = useState<InventoryRecord[] | undefined>(
     initialInventories,
   )
   const [isFiltered, setIsFiltered] = useState(true)
@@ -42,7 +42,7 @@ export default function InventoryProvider({
       isFiltered && inventories ? filter(inventories) : inventories
     return filtered?.reduce<InventoryMap>((prev, current) => {
       const day = prev[current.date] ?? []
-      day.push(current.inventory_path)
+      day.push(current.inventoryPath)
       prev[current.date] ??= day
       return prev
     }, {})

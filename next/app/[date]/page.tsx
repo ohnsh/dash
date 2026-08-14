@@ -1,6 +1,7 @@
 // import { unstable_cache } from 'next/cache'
 import { notFound } from 'next/navigation'
-import { dbQuery } from '@/lib/turso'
+import { db, invs } from '@/lib/turso'
+import { eq } from 'drizzle-orm'
 import VodPlayer from '@/components/vod-player'
 import ThumbStrip from '@/components/thumbstrip'
 import { BUCKET_URL, dateFromFilename } from '@/lib/vod-new'
@@ -10,15 +11,17 @@ import { type Meta, MetaSchema } from '@/lib/vod-schema'
 // const getInventories = unstable_cache(
 //   ['inventories'],
 //   { revalidate: false },
-const getInventories = async (date: string) => {
-  return await dbQuery({
-    sql: `
-      SELECT inventory_path, date
-      FROM vod_index
-      WHERE date = ?`,
-    args: [date],
-  })
-}
+const getInventories = async (date: string) =>
+  db.select().from(invs).where(eq(invs.date, date))
+
+//   return await dbQuery({
+//     sql: `
+//       SELECT inventory_path, date
+//       FROM vod_index
+//       WHERE date = ?`,
+//     args: [date],
+//   })
+// }
 
 const validateDate = (date: string) => /\d{4}-\d{2}-\d{2}/.test(date)
 
@@ -57,8 +60,8 @@ export default async function Vod({
       <h2>{timestamp}</h2>
       {rows.map((row) => (
         <ServerThumbStrip
-          key={row.inventory_path}
-          inventoryPath={row.inventory_path}
+          key={row.inventoryPath}
+          inventoryPath={row.inventoryPath}
         />
       ))}
     </div>

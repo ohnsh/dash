@@ -2,6 +2,16 @@
   "name": "dash-vod",
   "private": true,
   "type": "module",
+  "exports": {
+    "./db": {
+      "types": "./db/index.ts",
+      "import": "./db/index.ts"
+    },
+    "./db/*": {
+      "types": "./db/*.ts",
+      "import": "./db/*.ts"
+    }
+  },
   "bin": {
     "mkinventory": "./index.ts",
     "video.sh": "./video.sh",
