@@ -63,6 +63,8 @@ export const voiceResultSchema = z.object({
   ),
 })
 
+export type VoiceResult = z.infer<typeof voiceResultSchema>
+
 export const vodVideoSchema = z.object({
   name: z.string(),
   type: z.enum(['hls', 'mp4', 'mov']),

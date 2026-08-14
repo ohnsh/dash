@@ -14,6 +14,10 @@
     "./schema": {
       "types": "./lib/schema.ts",
       "import": "./lib/schema.ts"
+    },
+    "./util": {
+      "types": "./lib/util.ts",
+      "import": "./lib/util.ts"
     }
   },
   "bin": {

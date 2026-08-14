@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path'
 import { db } from './db'
 import { inventoriesTable } from './db/schema'
 import { type VODVideo, vodVideoSchema } from './lib/schema'
+import { getSpeechTotal } from './lib/util'
 import { newContext, toMetadata } from './lib/vod-video'
 
 function log(msg: string) {
@@ -59,11 +60,10 @@ async function index(inventoryPath: string) {
     .json()
     .then((raw) => raw.map(vodVideoSchema.parse))
 
-  const speechTotal = json.reduce((sum, current) => {
-    if (!current.voiceSegments) return sum
-    const { speechTotal, duration, speechRatio } = current.voiceSegments
-    return sum + (speechTotal ?? Math.round(duration * speechRatio))
-  }, 0)
+  const speechTotal = json.reduce(
+    (sum, current) => sum + getSpeechTotal(current),
+    0,
+  )
 
   log(`Indexing ${inventoryPath} with ${speechTotal}s of speech.`)
   await db
