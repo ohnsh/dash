@@ -49,7 +49,9 @@ async function index(inventoryPath: string) {
     return sum + (speechTotal ?? Math.round(duration * speechRatio))
   }, 0)
 
-  db.insert(inventoriesTable)
+  console.log(`Indexing ${inventoryPath} with ${speechTotal}s of speech.`)
+  await db
+    .insert(inventoriesTable)
     .values({
       inventoryPath,
       date: `${yearMo}-${day}`,
