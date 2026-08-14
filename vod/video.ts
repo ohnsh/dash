@@ -5,6 +5,18 @@ import { db } from './db'
 import { inventoriesTable } from './db/schema'
 import { type Metadata, newContext, toMetadata } from './lib/vod-video'
 
+function log(msg: string) {
+  const stamp = new Date()
+    .toLocaleString('en-CA', {
+      dateStyle: 'short',
+      timeStyle: 'medium',
+      hour12: false,
+    })
+    .replace(/^\d{4}-/, '')
+    .replace(',', '')
+  console.log(`[video.ts ${stamp}] ${msg}`)
+}
+
 async function mkassets(path: string) {
   const ctx = await newContext(path)
   const metadata = await toMetadata(ctx)
@@ -49,7 +61,7 @@ async function index(inventoryPath: string) {
     return sum + (speechTotal ?? Math.round(duration * speechRatio))
   }, 0)
 
-  console.log(`Indexing ${inventoryPath} with ${speechTotal}s of speech.`)
+  log(`Indexing ${inventoryPath} with ${speechTotal}s of speech.`)
   await db
     .insert(inventoriesTable)
     .values({

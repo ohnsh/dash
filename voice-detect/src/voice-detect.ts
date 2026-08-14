@@ -13,6 +13,19 @@ export interface VoiceResult {
 
 const SAMPLE_RATE = 16000
 
+function log(msg: string, { file = Bun.stderr } = {}) {
+  const stamp = new Date()
+    .toLocaleString('en-CA', {
+      dateStyle: 'short',
+      timeStyle: 'medium',
+      hour12: false,
+    })
+    .replace(/^\d{4}-/, '')
+    .replace(',', '')
+
+  file.write(`[voice-detect.ts ${stamp}] ${msg}\n`)
+}
+
 // use ffmpeg to extract first audio stream and re-encode to
 // 16kHz / float32 / single-channel PCM
 async function extractPcmFromVideo(videoPath: string): Promise<Float32Array> {
@@ -84,23 +97,21 @@ export default async function voiceDetect(
   }
 
   // keep stdout clean by logging to stderr (but without console.error formatting)
-  Bun.stderr.write('Loading Silero VAD ONNX model...\n')
+  log('Loading Silero VAD ONNX model...')
   const vad = await SileroVAD.create(modelPath)
 
-  Bun.stderr.write('Demuxing video stream...\n')
+  log('Demuxing video stream...')
   const audioBuffer = await extractPcmFromVideo(mediaPath)
   const duration = Number((audioBuffer.length / SAMPLE_RATE).toFixed(1))
 
-  Bun.stderr.write(`Analyzing ${duration}s of audio...\n`)
+  log(`Analyzing ${duration}s of audio...`)
   const segments = await vad.processAudioBuffer(audioBuffer)
   const speechTotal = segments.reduce<number>(
     (sum, { start, end }) => sum + end - start,
     0,
   )
   const speechRatio = Number((speechTotal / duration).toFixed(3))
-  Bun.stderr.write(
-    `Found ${speechTotal}s of speech in ${segments.length} segments.\n`,
-  )
+  log(`Found ${speechTotal}s of speech in ${segments.length} segments.`)
 
   const params = SileroVAD.getDefaultParams()
 
