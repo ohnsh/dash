@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm'
 import VodPlayer from '@/components/vod-player'
 import ThumbStrip from '@/components/thumbstrip'
 import { fetchInventory, invPathToData } from '@/lib/dash-video'
-import { timestampFromFilename, tsToDateString } from '@/lib/vod-new'
+import { paramsToSrc, timestampFromFilename, tsToString } from '@/lib/vod-new'
 
 // this can be optimized, especially for days that are over
 // const getInventories = unstable_cache(
@@ -33,11 +33,14 @@ export default async function Vod({
     notFound()
   }
 
-  const timestamp = (v && timestampFromFilename(v)) || date
+  const filename = v && v.split('/').at(-1)
+  const src = await paramsToSrc(searchParams, params)
+  const timestamp = (filename && timestampFromFilename(filename)) || date
   let fmtTime: string
   try {
-    fmtTime = tsToDateString(timestamp, undefined, {
+    fmtTime = tsToString(timestamp, undefined, {
       dateStyle: 'medium',
+      timeStyle: 'medium',
     })
   } catch {
     fmtTime = '[invalid date]'
@@ -45,7 +48,7 @@ export default async function Vod({
 
   return (
     <div>
-      <VodPlayer />
+      <VodPlayer src={src} />
       <h2>{fmtTime}</h2>
       {rows.map((row) => (
         <ThumbStrip

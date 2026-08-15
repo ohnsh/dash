@@ -1,23 +1,69 @@
 export const BUCKET_URL = process.env.BUCKET_URL || 'https://vod.ohn.sh'
 
-export async function paramsToSrc(
+// full keys begin with the date in year-mo/day format
+const fullKeyPattern = /^\d{4}-\d{2}[/]\d{2}[/]/
+
+export const keyToFullKey = (k: string, date?: string) => {
+  if (fullKeyPattern.test(k)) {
+    return k
+  }
+  if (!date?.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    return undefined
+  }
+  const [year, mo, day] = date.split('-')
+  return `${year}-${mo}/${day}/${k}`
+}
+
+export const keyToShortKey = (k: string) => k.replace(fullKeyPattern, '')
+
+export const keyToSrc = (k: string, date?: string) => {
+  const fullKey = keyToFullKey(k, date)
+  return fullKey && `${BUCKET_URL}/${fullKey}`
+}
+
+// given URL info in the form of server page props, get the full key of the current video
+export async function paramsToKey(
   searchParams: Promise<{ v?: string | string[] | undefined }>,
   params?: Promise<{ date?: string }>,
 ) {
-  if (!params) return
-  const { date } = await params
   let { v } = await searchParams
-  if (Array.isArray(v)) {
+  if (!v) {
+    return undefined
+  } else if (Array.isArray(v)) {
     v = v[0]
   }
 
-  // TODO: finish
-  if (date) {
-    const [year, mo, day] = date.split('-')
-    const r2date = `${year}-${mo}/${day}`
-    // const r2date = date.replace(/-(?=\d{2}$)/, '/')
-    return `${BUCKET_URL}/${r2date}/${v}`
+  if (fullKeyPattern.test(v)) {
+    return v
   }
+  if (!params) {
+    return undefined
+  }
+  const { date } = await params
+  return keyToFullKey(v, date)
+}
+export const paramsToSrc = (...args: Parameters<typeof paramsToKey>) =>
+  paramsToKey(...args).then((key) => key && `${BUCKET_URL}/${key}`)
+
+export const dateInPathname = (pathname: string) =>
+  /^[/]\d{4}-\d{2}-\d{2}/.test(pathname)
+
+// given URL info on the client, get the full key of the current video
+export function clientParamsToKey(v: string, pathname?: string) {
+  if (fullKeyPattern.test(v)) {
+    return v
+  }
+  if (!pathname || !dateInPathname(pathname)) {
+    return undefined
+  }
+  const [, date] = pathname.split('/')
+  return keyToFullKey(v, date)
+}
+export const clientParamsToSrc = (
+  ...args: Parameters<typeof clientParamsToKey>
+) => {
+  const key = clientParamsToKey(...args)
+  return key && `${BUCKET_URL}/${key}`
 }
 
 // function getSrc(pathname: string, v: string) {
@@ -60,21 +106,11 @@ export function timestampFromFilename(filename: string) {
   }
 }
 
-export function tsToDateString(
+export function tsToString(
   timestamp: string,
-  ...[locale, opts]: Parameters<Date['toLocaleDateString']>
+  ...[locale, opts]: Parameters<Date['toLocaleString']>
 ): string {
-  return new Date(timestamp).toLocaleDateString(locale, {
-    ...opts,
-    timeZone: 'utc',
-  })
-}
-
-export function tsToTimeString(
-  timestamp: string,
-  ...[locale, opts]: Parameters<Date['toLocaleTimeString']>
-): string {
-  return new Date(timestamp).toLocaleTimeString(locale, {
+  return new Date(timestamp).toLocaleString(locale, {
     ...opts,
     timeZone: 'utc',
   })

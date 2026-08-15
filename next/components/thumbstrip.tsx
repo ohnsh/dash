@@ -2,10 +2,15 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { use, useEffect, useRef } from 'react'
 import type { DashVideo } from '@/lib/dash-video'
-import { tsToTimeString } from '@/lib/vod-new'
+import {
+  clientParamsToKey,
+  dateInPathname,
+  keyToShortKey,
+  tsToString,
+} from '@/lib/vod-new'
 import css from './thumbstrip.module.css'
 
 export default function Thumbstrip({
@@ -40,21 +45,25 @@ export default function Thumbstrip({
 
 export function DashThumb({ video }: { video: DashVideo }) {
   const v = useSearchParams().get('v')
-  const isSelected = v === video.key
+  const pathname = usePathname()
+
+  const fullKey = v ? clientParamsToKey(v, pathname) : undefined
+  const isSelected = fullKey === video.key
+
   const { width, height } = video.meta_ffprobe
   const timestamp =
     video.timestamp &&
-    tsToTimeString(video.timestamp, undefined, {
+    tsToString(video.timestamp, undefined, {
       hour: 'numeric',
       minute: 'numeric',
       hour12: false,
     })
+  const hrefKey = dateInPathname(pathname)
+    ? keyToShortKey(video.key)
+    : video.key
 
   return (
-    <Link
-      href={`?v=${video.key}`}
-      aria-current={isSelected ? 'page' : undefined}
-    >
+    <Link href={`?v=${hrefKey}`} aria-current={isSelected ? 'page' : undefined}>
       <Image
         alt=""
         width={width}

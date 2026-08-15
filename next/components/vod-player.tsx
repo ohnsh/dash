@@ -2,6 +2,7 @@
 
 import { use, useEffect, useRef } from 'react'
 import type { DashVideo } from '@/lib/dash-video'
+import { clientParamsToSrc } from '@/lib/vod-new'
 import css from './vod-player.module.css'
 
 export default function VodPlayer({
