@@ -15,3 +15,23 @@
     color: hsl(from var(--foreground) h s calc(l*.5));
   }
 }
+
+.segments {
+  list-style: none;
+  padding: .2rem 0;
+  display: flex;
+  gap: var(--spacing);
+
+  button {
+    cursor: pointer;
+    padding: .1rem .5rem;
+    border: solid 1px;
+    border-radius: var(--radius-sm);
+  }
+
+  li.active {
+    button {
+      outline: solid 1px var(--color-accent);
+    }
+  }
+}

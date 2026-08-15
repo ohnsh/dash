@@ -96,15 +96,17 @@ export default function VodPlayer({
         <VoiceSegments
           voiceSegments={dv.voiceSegments}
           updatePosition={(pos: number) => {
-            if (videoRef.current) {
-              videoRef.current.currentTime = pos
-            }
+            if (!videoRef.current) return
+
+            videoRef.current.currentTime = pos
+            videoRef.current.play()
           }}
         />
       )}
     </div>
   )
 }
+
 function VoiceSegments({
   voiceSegments,
   updatePosition,
@@ -113,15 +115,27 @@ function VoiceSegments({
   updatePosition: (pos: number) => void
 }) {
   const { segments } = voiceSegments
+
   return (
-    <ul>
-      {segments.map((seg) => (
-        <li key={seg.start}>
-          <button type="button" onClick={() => updatePosition(seg.start)}>
-            {seg.start}
-          </button>
-        </li>
-      ))}
+    <ul className={css.segments}>
+      {segments.map((seg) => {
+        const sec = seg.start % 60
+        const min = Math.floor(seg.start / 60) % 60
+        const hour = Math.floor(seg.start / 3600)
+
+        const time = (hour > 0 ? [hour, min, sec] : [min, sec])
+          .map((n) => String(n).padStart(2, '0'))
+          .join(':')
+          .replace(/^0/, '')
+
+        return (
+          <li key={seg.start}>
+            <button type="button" onClick={() => updatePosition(seg.start)}>
+              {time}
+            </button>
+          </li>
+        )
+      })}
     </ul>
   )
 }
