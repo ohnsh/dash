@@ -56,7 +56,6 @@ export function DashThumb({ video }: { video: DashVideo }) {
     tsToString(video.timestamp, undefined, {
       hour: 'numeric',
       minute: 'numeric',
-      hour12: false,
     })
   const hrefKey = dateInPathname(pathname)
     ? keyToShortKey(video.key)

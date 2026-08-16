@@ -2,7 +2,7 @@
 
 import type { VoiceResult } from 'dash-vod/schema'
 import { getSpeechTotal } from 'dash-vod/util'
-import { use, useEffect, useRef } from 'react'
+import { use, useEffect, useRef, useState } from 'react'
 import type { DashVideo } from '@/lib/dash-video'
 // src from pathname and searchparams
 // import { clientParamsToSrc } from '@/lib/vod-new'
@@ -17,18 +17,22 @@ export default function VodPlayer({
 }) {
   const dv = videoPromise && use(videoPromise)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined)
+
   src ??= dv?.src
 
   useEffect(() => {
-    const video = videoRef.current
-    if (!video || !src) return
+    const $video = videoRef.current
+    if (!$video || !src) return
 
-    video.src = src
-    // video.load()
+    $video.src = src
+    // $video.load()
 
+    // generate text track from voice segment data
+    // (equivalent to <track> pointing to a VTT file)
     if (!dv?.voiceSegments || !getSpeechTotal(dv)) return
 
-    const vtt = video.addTextTrack('chapters', 'speech', 'en')
+    const vtt = $video.addTextTrack('chapters', 'speech', 'en')
     const { segments } = dv.voiceSegments
     const cues = segments.map(
       (seg) => new VTTCue(seg.start, seg.end, '[speech]'),
@@ -41,57 +45,65 @@ export default function VodPlayer({
 
     const timeupdateHandler = (_: Event) => {
       let nextStart: number | undefined
-      for (const { start, end } of segments) {
-        if (video.currentTime < start) {
+
+      for (const [i, { start, end }] of segments.entries()) {
+        if ($video.currentTime < start) {
           nextStart = start
           break
         }
-        if (video.currentTime < end) {
+        if ($video.currentTime < end) {
+          setActiveIndex(i)
           return
         }
       }
-      video.currentTime = nextStart ? nextStart : video.duration
+      setActiveIndex(undefined)
+      // Experiment to automatically skip from one voice segment to the next.
+      // This first-pass implementation is not really usable because it prevents
+      // seeking/scrubbing and is just disorienting.
+      // $video.currentTime = nextStart ? nextStart : $video.duration
     }
-    // too much
-    // video.addEventListener('timeupdate', timeupdateHandler)
+    $video.addEventListener('timeupdate', timeupdateHandler)
 
     return () => {
-      // if (video.isConnected)
-      video.pause()
-      video.removeAttribute('src')
-      video.load()
+      // Works much better than using the key prop. (Tried adding key={src} to <video>
+      // to unmount/remount it on src change, but still heard phantom audio from previous
+      // sources.) Another option is to force a navigation using <a> instead of <Link>
+
+      // if ($video.isConnected)
+      $video.pause()
+      $video.removeAttribute('src')
+      $video.load()
       // there is no API to remove a text track once added.
       vtt.mode = 'disabled'
 
-      // video.removeEventListener('timeupdate', timeupdateHandler)
+      $video.removeEventListener('timeupdate', timeupdateHandler)
     }
   }, [src, dv])
 
   const width = dv?.meta_ffprobe.width ?? 1920
   const height = dv?.meta_ffprobe.height ?? 1080
 
-  // adding key={src} to <video> to unmount/remount it on src change.
-  // still hearing phantom audio from previous sources, however.
-  // it may be best to force a navigation using <a> instead of <Link>
-  // EDIT: the above effect works much better than using the key prop.
   return (
     <div className={css.container}>
-      <span>VOD player babyyyyyy</span>
-      {src && (
-        <video
-          ref={videoRef}
-          width={width}
-          height={height}
-          crossOrigin="anonymous"
-          autoPlay
-          controls
-          playsInline
-        >
-          <a href={src} download={dv?.name ?? 'video.mp4'}>
-            Download MP4
-          </a>
-        </video>
-      )}
+      {/* wrapper to reserve space even when <video> isn't rendered */}
+      <div className={css.player}>
+        <span>Select a video</span>
+        {src && (
+          <video
+            ref={videoRef}
+            width={width}
+            height={height}
+            crossOrigin="anonymous"
+            autoPlay
+            controls
+            playsInline
+          >
+            <a href={src} download={dv?.name ?? 'video.mp4'}>
+              Download MP4
+            </a>
+          </video>
+        )}
+      </div>
       {dv?.voiceSegments && (
         <VoiceSegments
           voiceSegments={dv.voiceSegments}
@@ -101,6 +113,7 @@ export default function VodPlayer({
             videoRef.current.currentTime = pos
             videoRef.current.play()
           }}
+          activeIndex={activeIndex}
         />
       )}
     </div>
@@ -110,18 +123,22 @@ export default function VodPlayer({
 function VoiceSegments({
   voiceSegments,
   updatePosition,
+  activeIndex,
 }: {
   voiceSegments: VoiceResult
   updatePosition: (pos: number) => void
+  activeIndex?: number
 }) {
   const { segments } = voiceSegments
 
   return (
     <ul className={css.segments}>
-      {segments.map((seg) => {
-        const sec = seg.start % 60
-        const min = Math.floor(seg.start / 60) % 60
-        const hour = Math.floor(seg.start / 3600)
+      {segments.map((seg, i) => {
+        // -1 can sneak into the data
+        const start = Math.max(seg.start, 0)
+        const sec = start % 60
+        const min = Math.floor(start / 60) % 60
+        const hour = Math.floor(start / 3600)
 
         const time = (hour > 0 ? [hour, min, sec] : [min, sec])
           .map((n) => String(n).padStart(2, '0'))
@@ -129,8 +146,11 @@ function VoiceSegments({
           .replace(/^0/, '')
 
         return (
-          <li key={seg.start}>
-            <button type="button" onClick={() => updatePosition(seg.start)}>
+          <li
+            key={start}
+            className={i === activeIndex ? css.active : undefined}
+          >
+            <button type="button" onClick={() => updatePosition(start)}>
               {time}
             </button>
           </li>

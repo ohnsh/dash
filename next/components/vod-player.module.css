@@ -1,41 +1,50 @@
 .container {
-  backdrop-filter: brightness(150%);
-  position: relative;
   border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+
+.player {
+  aspect-ratio: 16/9;
+  position: relative;
+  background-color: hsl(0 0 100% / .03);
+  /* backdrop-filter: brightness(150%); */
+  min-height: 200px;
+  align-self: center;
+  overflow: clip;
 
   video {
     max-width: 100%;
-    min-height: 200px;
   }
 
-  >span {
+  span {
     position: absolute;
     inset: 50% auto auto 50%;
     transform: translate(-50%, -50%);
     z-index: -1;
     font-weight: bold;
-    color: hsl(from var(--foreground) h s calc(l*.5));
+    color: hsl(from var(--foreground) h s l / .7);
   }
 }
 
 .segments {
   list-style: none;
-  padding: .2rem 0;
+  padding: .5rem 0;
   display: flex;
-  gap: var(--spacing);
+  justify-content: center;
+  gap: calc(var(--spacing) * 2);
 
   button {
     cursor: pointer;
+    color: hsl(from var(--foreground) h s l / .7);
+    font-size: var(--text-sm);
+    font-weight: 600;
     padding: .1rem .5rem;
-    border: solid 1px;
+    border-color: hsl(from var(--foreground) h s l / .5);
     border-radius: var(--radius-sm);
-  }
 
-  li.active {
-    button {
+    .active & {
       outline: solid 1px var(--color-accent);
     }
   }

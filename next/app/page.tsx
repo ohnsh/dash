@@ -40,7 +40,9 @@ export default async function Home({ searchParams }: PageProps<'/'>) {
   return (
     <article className="flex flex-col h-full">
       <VODPlayer videoPromise={currentVid} />
-      <ThumbStrip videosPromise={speechVids} title={cam} tail />
+      <div className="basis-[170px] grow-1 shrink-0 min-h-0">
+        <ThumbStrip videosPromise={speechVids} title={cam} tail />
+      </div>
     </article>
   )
 }
