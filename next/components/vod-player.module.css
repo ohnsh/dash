@@ -11,8 +11,13 @@
   background-color: hsl(0 0 100% / .03);
   /* backdrop-filter: brightness(150%); */
   min-height: 200px;
-  align-self: center;
   overflow: clip;
+  /* necessary for video to shrink */
+  align-self: center;
+
+  &:not(:has(video)) {
+    width: 100%;
+  }
 
   video {
     max-width: 100%;
