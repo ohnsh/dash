@@ -110,7 +110,10 @@ export class SileroVAD {
   // Process whole Float32 audio buffer and return speech timestamps.
   public async processAudioBuffer(
     pcmAudio: Float32Array,
-    threshold = SPEECH_THRESHOLD,
+    {
+      duration,
+      threshold = SPEECH_THRESHOLD,
+    }: { duration?: number; threshold?: number } = {},
   ): Promise<VoiceSegment[]> {
     this.resetState()
     const segments: VoiceSegment[] = []
@@ -159,45 +162,42 @@ export class SileroVAD {
     }
 
     // post-processing helper to round, pad, and combine segments
-    return segments.reduce<VoiceSegment[]>(segmentReducer, [])
+    return segments.reduce<VoiceSegment[]>((acc, current) => {
+      const working = acc.pop()
+
+      // don't pad past zero or duration
+      const start = Math.max(0, Math.round(current.start - PADDING_SEC))
+      const end = Math.min(
+        duration ?? Infinity,
+        Math.round(current.end + PADDING_SEC),
+      )
+      const confidence = current.confidence
+
+      // first segment
+      if (!working) {
+        return [{ start, end, confidence }]
+      }
+
+      // segments aren't too close; leave them separate
+      if (start - working.end >= MIN_GAP_SEC) {
+        acc.push(working, { start, end, confidence })
+        return acc
+      }
+
+      // combine these two segments
+      // to compute average confidence, weigh the two inputs by the
+      // number of samples they represent
+      const weight = (end - start) / (end - working.start)
+      const avgConfidence =
+        weight * confidence + (1 - weight) * working.confidence
+
+      acc.push({
+        start: working.start,
+        end,
+        confidence: Number(avgConfidence.toFixed(3)),
+      })
+
+      return acc
+    }, [])
   }
-}
-
-type SegmentReducer = (
-  acc: VoiceSegment[],
-  current: VoiceSegment,
-) => VoiceSegment[]
-
-// post-processing helper to round, pad, and combine segments
-const segmentReducer: SegmentReducer = (acc, current) => {
-  const working = acc.pop()
-
-  const start = Math.round(current.start - PADDING_SEC)
-  const end = Math.round(current.end + PADDING_SEC)
-  const confidence = current.confidence
-
-  // first segment
-  if (!working) {
-    return [{ start, end, confidence }]
-  }
-
-  // segments aren't too close; leave them separate
-  if (start - working.end >= MIN_GAP_SEC) {
-    acc.push(working, { start, end, confidence })
-    return acc
-  }
-
-  // combine these two segments
-  // to compute average confidence, weigh the two inputs by the
-  // number of samples they represent
-  const weight = (end - start) / (end - working.start)
-  const avgConfidence = weight * confidence + (1 - weight) * working.confidence
-
-  acc.push({
-    start: working.start,
-    end,
-    confidence: Number(avgConfidence.toFixed(3)),
-  })
-
-  return acc
 }

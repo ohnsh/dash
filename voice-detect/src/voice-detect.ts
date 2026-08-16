@@ -105,7 +105,7 @@ export default async function voiceDetect(
   const duration = Number((audioBuffer.length / SAMPLE_RATE).toFixed(1))
 
   log(`Analyzing ${duration}s of audio...`)
-  const segments = await vad.processAudioBuffer(audioBuffer)
+  const segments = await vad.processAudioBuffer(audioBuffer, { duration })
   const speechTotal = segments.reduce<number>(
     (sum, { start, end }) => sum + end - start,
     0,
