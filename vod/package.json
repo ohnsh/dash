@@ -1,5 +1,5 @@
 {
-  "name": "dash-vod",
+  "name": "@dash/vod",
   "private": true,
   "type": "module",
   "exports": {
@@ -40,7 +40,7 @@
     "@libsql/client": "^0.17.4",
     "drizzle-orm": "^1.0.0-rc.4",
     "temporal-polyfill": "^1.0.2",
-    "voice-detect": "workspace:*",
+    "@dash/voice-detect": "workspace:*",
     "zod": "^4.4.3"
   }
 }

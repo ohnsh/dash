@@ -1,9 +1,9 @@
 import { basename, dirname, join } from 'node:path'
-import type { VoiceResult } from 'voice-detect'
-import exiftool, { type ExiftoolProbe } from './exiftool'
-import ffprobe, { type FFprobeStream } from './ffprobe'
+import type { VoiceResult } from '@dash/voice-detect'
+import exiftool from './exiftool'
+import ffprobe from './ffprobe'
 import { mkthumb } from './mkassets'
-import type { VODVideo } from './schema'
+import type { ExiftoolProbe, FFprobeStream, VODVideo } from './schema'
 
 export interface VODVideoContext {
   path: string
@@ -95,7 +95,7 @@ export async function attachVoiceSegments(ctx: VODVideoContext) {
 
   // could import earlier to avoid doing any work if onnxruntime won't load
   try {
-    const { default: voiceDetect } = await import('voice-detect')
+    const { default: voiceDetect } = await import('@dash/voice-detect')
     const voiceSegments = await voiceDetect(ctx.path)
     return { ...ctx, voiceSegments }
   } catch {

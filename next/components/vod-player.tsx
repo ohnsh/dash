@@ -1,7 +1,7 @@
 'use client'
 
-import type { VoiceResult } from 'dash-vod/schema'
-import { getSpeechTotal } from 'dash-vod/util'
+import type { VoiceResult } from '@dash/vod/schema'
+import { getSpeechTotal } from '@dash/vod/util'
 import { use, useEffect, useRef, useState } from 'react'
 import type { DashVideo } from '@/lib/dash-video'
 // src from pathname and searchparams

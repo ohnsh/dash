@@ -1,5 +1,5 @@
 {
-  "name": "dashd",
+  "name": "@dash/dashd",
   "type": "module",
   "scripts": {
     "start": "bun run --port=4100 ./src/index.ts",

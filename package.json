@@ -1,5 +1,5 @@
 {
-  "name": "dash",
+  "name": "@dash/root",
   "private": true,
   "workspaces": [
     "next",

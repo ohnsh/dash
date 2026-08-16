@@ -1,5 +1,5 @@
 {
-  "name": "voice-detect",
+  "name": "@dash/voice-detect",
   "private": true,
   "type": "module",
   "module": "./src/voice-detect.ts",

@@ -1,4 +1,4 @@
-import { type VODVideo, vodVideoSchema } from 'dash-vod/schema'
+import { type VODVideo, vodVideoSchema } from '@dash/vod/schema'
 import { BUCKET_URL, timestampFromFilename } from './vod-new'
 
 export function toDashVideo(video: VODVideo, inventoryPath: string) {

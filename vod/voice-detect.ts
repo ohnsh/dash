@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import voiceDetect from 'voice-detect'
+import voiceDetect from '@dash/voice-detect'
 
 const mediaPath = Bun.argv[2]
 if (!mediaPath) {

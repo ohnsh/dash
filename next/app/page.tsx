@@ -1,4 +1,4 @@
-import { getSpeechTotal } from 'dash-vod/util'
+import { getSpeechTotal } from '@dash/vod/util'
 import { desc, gte } from 'drizzle-orm'
 import ThumbStrip from '@/components/thumbstrip'
 import VODPlayer from '@/components/vod-player'

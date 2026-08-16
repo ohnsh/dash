@@ -1,5 +1,5 @@
+import { inventoriesTable as invs } from '@dash/vod/db/schema'
 import { createClient, type InStatement } from '@libsql/client/web'
-import { inventoriesTable as invs } from 'dash-vod/db/schema'
 import { drizzle } from 'drizzle-orm/libsql/web'
 
 export { invs }
