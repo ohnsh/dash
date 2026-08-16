@@ -5,7 +5,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "gen-openapi-types": "bunx openapi-typescript ./mediamtx-openapi.yaml -o ./mediamtx-openapi.ts"
+    "gen-openapi-types": "bunx openapi-typescript ./mediamtx-openapi.yaml -o ./mediamtx-openapi.ts",
+    "db:pull": "rm local.db*; turso db shell dash .dump | sqlite3 local.db",
+    "db:start": "turso dev -f local.db"
   },
   "dependencies": {
     "@biomejs/biome": "^2.5.8",

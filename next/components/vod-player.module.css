@@ -1,10 +1,15 @@
 .container {
   backdrop-filter: brightness(150%);
-  aspect-ratio: 16 / 9;
-  max-height: 70vh;
   position: relative;
   border-radius: var(--radius-md);
-  overflow: clip;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+
+  video {
+    max-width: 100%;
+    min-height: 200px;
+  }
 
   >span {
     position: absolute;

@@ -38,7 +38,7 @@ export default async function Home({ searchParams }: PageProps<'/'>) {
   // fallback: paramsToSrc(searchParams)
 
   return (
-    <article>
+    <article className="flex flex-col h-full">
       <VODPlayer videoPromise={currentVid} />
       <ThumbStrip videosPromise={speechVids} title={cam} tail />
     </article>
