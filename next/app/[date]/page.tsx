@@ -2,10 +2,18 @@
 import { notFound } from 'next/navigation'
 import { db, invs } from '@/lib/turso'
 import { eq } from 'drizzle-orm'
-import VodPlayer from '@/components/vod-player'
+import VODPlayer from '@/components/vod-player'
 import ThumbStrip from '@/components/thumbstrip'
-import { fetchInventory, invPathToData } from '@/lib/dash-video'
-import { paramsToSrc, timestampFromFilename, tsToString } from '@/lib/vod-new'
+import { DashVideo, fetchInventory, invPathToData } from '@/lib/dash-video'
+import {
+  keyToFullKey,
+  keyToSrc,
+  paramsToKey,
+  paramsToSrc,
+  timestampFromFilename,
+  tsToString,
+} from '@/lib/vod-new'
+import { Suspense } from 'react'
 
 // this can be optimized, especially for days that are over
 // const getInventories = unstable_cache(
@@ -21,8 +29,12 @@ export default async function Vod({
   searchParams,
 }: PageProps<'/[date]'>) {
   const { date } = await params
-  const sp = await searchParams
-  const v = Array.isArray(sp.v) ? sp.v[0] : sp.v
+  let { v } = await searchParams
+  if (Array.isArray(v)) v = v[0]
+
+  const fullKey = v && keyToFullKey(v, date)
+  const filename = v && v.split('/').at(-1)
+  const src = fullKey && keyToSrc(fullKey)
 
   if (!validateDate(date)) {
     notFound()
@@ -33,8 +45,6 @@ export default async function Vod({
     notFound()
   }
 
-  const filename = v && v.split('/').at(-1)
-  const src = await paramsToSrc(searchParams, params)
   const timestamp = (filename && timestampFromFilename(filename)) || date
   let fmtTime: string
   try {
@@ -46,17 +56,52 @@ export default async function Vod({
     fmtTime = '[invalid date]'
   }
 
+  const inventories = rows.map((row) => ({
+    ...row,
+    videosPromise: fetchInventory(row.inventoryPath),
+  }))
+
+  // VODPlayer will get a promise that resolves to the currently playing DashVideo object.
+  // This is pretty fragile; we should probably fetch the exact inventory to which the
+  // video belongs, relying on Next.js fetch de-duplication to use the same network
+  // request as the corresponding ThumbStrip
+  let videoPromise: Promise<DashVideo> | undefined
+
+  if (fullKey) {
+    let resolveVideo: (value: DashVideo) => void
+    videoPromise = new Promise((resolve) => {
+      resolveVideo = resolve
+    })
+    inventories.forEach((inv) =>
+      inv.videosPromise.then((vids) => {
+        const currentVid = vids.find(({ key }) => key === fullKey)
+        if (currentVid) {
+          resolveVideo(currentVid)
+        }
+      }),
+    )
+  }
+
   return (
-    <div>
-      <VodPlayer src={src} />
+    <article className="flex flex-col h-full">
+      {fullKey ? (
+        <Suspense fallback={<VODPlayer src={src} />}>
+          <VODPlayer videoPromise={videoPromise} />
+        </Suspense>
+      ) : (
+        <VODPlayer />
+      )}
       <h2>{fmtTime}</h2>
-      {rows.map((row) => (
-        <ThumbStrip
-          key={row.inventoryPath}
-          videosPromise={fetchInventory(row.inventoryPath)}
-          title={invPathToData(row.inventoryPath).cam}
-        />
-      ))}
-    </div>
+      <div className="basis-[170px] grow shrink-0 min-h-0">
+        {inventories.map((inv) => (
+          <ThumbStrip
+            key={inv.inventoryPath}
+            videosPromise={inv.videosPromise}
+            title={invPathToData(inv.inventoryPath).cam}
+            tail
+          />
+        ))}
+      </div>
+    </article>
   )
 }

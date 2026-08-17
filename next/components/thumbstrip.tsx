@@ -12,6 +12,7 @@ import {
   tsToString,
 } from '@/lib/vod-new'
 import css from './thumbstrip.module.css'
+import { getSpeechTotal } from '@dash/vod/util'
 
 export default function Thumbstrip({
   videosPromise,
@@ -61,6 +62,8 @@ export function DashThumb({ video }: { video: DashVideo }) {
     ? keyToShortKey(video.key)
     : video.key
 
+  const speechTotal = getSpeechTotal(video)
+
   return (
     <Link href={`?v=${hrefKey}`} aria-current={isSelected ? 'page' : undefined}>
       <Image
@@ -70,7 +73,11 @@ export function DashThumb({ video }: { video: DashVideo }) {
         src={video.thumb}
         unoptimized
       />
-      {timestamp && <span>{timestamp}</span>}
+      {(timestamp || speechTotal > 0) && (
+        <span>
+          {speechTotal > 0 && '★'} {timestamp}
+        </span>
+      )}
     </Link>
   )
 }
