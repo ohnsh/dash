@@ -4,13 +4,11 @@ import type { VoiceResult } from '@dash/vod/schema'
 import { getSpeechTotal } from '@dash/vod/util'
 import { use, useEffect, useRef, useState } from 'react'
 import { type DashVideo, MIN_CONFIDENCE } from '@/lib/dash-video'
-import useCrop, { type Rect } from '@/lib/use-crop'
+// import useCrop from '@/lib/use-crop'
 import { timestampFromFilename, tsToString } from '@/lib/vod-new'
 // src from pathname and searchparams
 // import { clientParamsToSrc } from '@/lib/vod-new'
 import css from './vod-player.module.css'
-
-const CROP_RECT: Rect = { x: 0, y: 0, width: 1920, height: 1080 }
 
 export default function VODPlayer({
   src,
@@ -22,13 +20,8 @@ export default function VODPlayer({
   const dv = videoPromise && use(videoPromise)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined)
-  const [cropRect, setCropRect] = useState<Rect | undefined>(undefined)
   src ??= dv?.src
-  useCrop(videoRef, src, cropRect)
-
-  const toggleCrop = () => {
-    setCropRect((prev) => (prev ? undefined : CROP_RECT))
-  }
+  // useCrop(src, videoRef)
 
   useEffect(() => {
     const $video = videoRef.current
@@ -103,7 +96,7 @@ export default function VODPlayer({
             width={width}
             height={height}
             crossOrigin="anonymous"
-            autoPlay
+            // autoPlay
             controls
             playsInline
           >
@@ -113,12 +106,7 @@ export default function VODPlayer({
           </video>
         )}
       </div>
-      <div className={css.vidFooter}>
-        {dv && <Timestamp dashVideo={dv} />}
-        <button type="button" onClick={toggleCrop}>
-          crop
-        </button>
-      </div>
+      <div className={css.vidFooter}>{dv && <Timestamp dashVideo={dv} />}</div>
       {dv?.voiceSegments && (
         <VoiceSegments
           voiceSegments={dv.voiceSegments}
