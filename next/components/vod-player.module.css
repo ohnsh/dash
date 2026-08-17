@@ -34,15 +34,21 @@
 }
 
 .segments {
-  list-style: none;
-  padding: .5rem 0;
   display: flex;
   justify-content: center;
-  gap: calc(var(--spacing) * 2);
+  gap: calc(var(--spacing) * 3);
+  padding: .5rem 0;
+  color: hsl(from var(--foreground) h s l / .7);
+
+  ul {
+    padding: 0;
+    list-style: none;
+    display: flex;
+    gap: calc(var(--spacing) * 2);
+  }
 
   button {
     cursor: pointer;
-    color: hsl(from var(--foreground) h s l / .7);
     font-size: var(--text-sm);
     font-weight: 600;
     padding: .1rem .5rem;

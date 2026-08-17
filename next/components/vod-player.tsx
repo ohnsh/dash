@@ -83,6 +83,8 @@ export default function VodPlayer({
   const width = dv?.meta_ffprobe.width ?? 1920
   const height = dv?.meta_ffprobe.height ?? 1080
 
+  const speechTotal = dv ? getSpeechTotal(dv) : 0
+
   return (
     <div className={css.container}>
       {/* wrapper to reserve space even when <video> isn't rendered */}
@@ -104,7 +106,7 @@ export default function VodPlayer({
           </video>
         )}
       </div>
-      {dv?.voiceSegments && (
+      {dv?.voiceSegments && speechTotal > 0 && (
         <VoiceSegments
           voiceSegments={dv.voiceSegments}
           updatePosition={(pos: number) => {
@@ -132,30 +134,39 @@ function VoiceSegments({
   const { segments } = voiceSegments
 
   return (
-    <ul className={css.segments}>
-      {segments.map((seg, i) => {
-        // -1 can sneak into the data
-        const start = Math.max(seg.start, 0)
-        const sec = start % 60
-        const min = Math.floor(start / 60) % 60
-        const hour = Math.floor(start / 3600)
+    <div className={css.segments}>
+      <span
+        title="Automatically detected voice activity"
+        role="img"
+        aria-label="Automatically detected voice activity"
+      >
+        ★
+      </span>
+      <ul>
+        {segments.map((seg, i) => {
+          // -1 can sneak into the data
+          const start = Math.max(seg.start, 0)
+          const sec = start % 60
+          const min = Math.floor(start / 60) % 60
+          const hour = Math.floor(start / 3600)
 
-        const time = (hour > 0 ? [hour, min, sec] : [min, sec])
-          .map((n) => String(n).padStart(2, '0'))
-          .join(':')
-          .replace(/^0/, '')
+          const time = (hour > 0 ? [hour, min, sec] : [min, sec])
+            .map((n) => String(n).padStart(2, '0'))
+            .join(':')
+            .replace(/^0/, '')
 
-        return (
-          <li
-            key={start}
-            className={i === activeIndex ? css.active : undefined}
-          >
-            <button type="button" onClick={() => updatePosition(start)}>
-              {time}
-            </button>
-          </li>
-        )
-      })}
-    </ul>
+          return (
+            <li
+              key={start}
+              className={i === activeIndex ? css.active : undefined}
+            >
+              <button type="button" onClick={() => updatePosition(start)}>
+                {time}
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    </div>
   )
 }
