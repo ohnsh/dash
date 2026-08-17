@@ -3,7 +3,7 @@
 import type { VoiceResult } from '@dash/vod/schema'
 import { getSpeechTotal } from '@dash/vod/util'
 import { use, useEffect, useRef, useState } from 'react'
-import type { DashVideo } from '@/lib/dash-video'
+import { type DashVideo, MIN_CONFIDENCE } from '@/lib/dash-video'
 // src from pathname and searchparams
 // import { clientParamsToSrc } from '@/lib/vod-new'
 import css from './vod-player.module.css'
@@ -83,7 +83,9 @@ export default function VodPlayer({
   const width = dv?.meta_ffprobe.width ?? 1920
   const height = dv?.meta_ffprobe.height ?? 1080
 
-  const speechTotal = dv ? getSpeechTotal(dv) : 0
+  const speechTotal = dv
+    ? getSpeechTotal(dv, { minConfidence: MIN_CONFIDENCE })
+    : 0
 
   return (
     <div className={css.container}>

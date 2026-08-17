@@ -47,7 +47,7 @@ export class SileroVAD {
 
   static getDefaultParams() {
     return {
-      speechThreshold: SPEECH_THRESHOLD,
+      minConfidence: SPEECH_THRESHOLD,
       hysteresis: HYSTERESIS,
       padding: PADDING_SEC,
       minGap: MIN_GAP_SEC,
@@ -112,8 +112,8 @@ export class SileroVAD {
     pcmAudio: Float32Array,
     {
       duration,
-      threshold = SPEECH_THRESHOLD,
-    }: { duration?: number; threshold?: number } = {},
+      minConfidence = SPEECH_THRESHOLD,
+    }: { duration?: number; minConfidence?: number } = {},
   ): Promise<VoiceSegment[]> {
     this.resetState()
     const segments: VoiceSegment[] = []
@@ -135,9 +135,9 @@ export class SileroVAD {
       const prob = await this.processChunk(chunk)
 
       // this is a state machine with memory (hysteresis).
-      // a probability > threshold begins a speech segment.
-      // but only a probability < (threshold - HYSTERESIS) will end it.
-      if (prob >= threshold) {
+      // a probability > minConfidence begins a speech segment.
+      // but only a probability < (minConfidence - HYSTERESIS) will end it.
+      if (prob >= minConfidence) {
         if (!isSpeaking) {
           isSpeaking = true
           speechStart = currentTime
@@ -146,7 +146,7 @@ export class SileroVAD {
         }
         currentConfidenceSum += prob
         frameCount++
-      } else if (isSpeaking && prob < threshold - HYSTERESIS) {
+      } else if (isSpeaking && prob < minConfidence - HYSTERESIS) {
         isSpeaking = false
         const speechEnd = currentTime
 

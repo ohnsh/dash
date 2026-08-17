@@ -1,10 +1,11 @@
 'use client'
 
+import { getSpeechTotal } from '@dash/vod/util'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { use, useEffect, useRef } from 'react'
-import type { DashVideo } from '@/lib/dash-video'
+import { type DashVideo, MIN_CONFIDENCE } from '@/lib/dash-video'
 import {
   clientParamsToKey,
   dateInPathname,
@@ -12,7 +13,6 @@ import {
   tsToString,
 } from '@/lib/vod-new'
 import css from './thumbstrip.module.css'
-import { getSpeechTotal } from '@dash/vod/util'
 
 export default function Thumbstrip({
   videosPromise,
@@ -62,7 +62,7 @@ export function DashThumb({ video }: { video: DashVideo }) {
     ? keyToShortKey(video.key)
     : video.key
 
-  const speechTotal = getSpeechTotal(video)
+  const speechTotal = getSpeechTotal(video, { minConfidence: MIN_CONFIDENCE })
 
   return (
     <Link href={`?v=${hrefKey}`} aria-current={isSelected ? 'page' : undefined}>

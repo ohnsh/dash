@@ -1,6 +1,8 @@
 import { type VODVideo, vodVideoSchema } from '@dash/vod/schema'
 import { BUCKET_URL, timestampFromFilename } from './vod-new'
 
+export const MIN_CONFIDENCE = 0.85
+
 export function toDashVideo(video: VODVideo, inventoryPath: string) {
   const pathData = invPathToData(inventoryPath)
   const key = `${pathData.keyPath}/${video.name}`

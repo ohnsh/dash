@@ -103,9 +103,14 @@ export default async function voiceDetect(
   log('Demuxing video stream...')
   const audioBuffer = await extractPcmFromVideo(mediaPath)
   const duration = Number((audioBuffer.length / SAMPLE_RATE).toFixed(1))
+  // empirical value (even yawns will sometimes register over 0.8)
+  const minConfidence = 0.8
 
   log(`Analyzing ${duration}s of audio...`)
-  const segments = await vad.processAudioBuffer(audioBuffer, { duration })
+  const segments = await vad.processAudioBuffer(audioBuffer, {
+    duration,
+    minConfidence,
+  })
   const speechTotal = segments.reduce<number>(
     (sum, { start, end }) => sum + end - start,
     0,
@@ -113,7 +118,7 @@ export default async function voiceDetect(
   const speechRatio = Number((speechTotal / duration).toFixed(3))
   log(`Found ${speechTotal}s of speech in ${segments.length} segments.`)
 
-  const params = SileroVAD.getDefaultParams()
+  const params = { ...SileroVAD.getDefaultParams(), minConfidence }
 
   return {
     duration,

@@ -4,7 +4,6 @@ import ThumbStrip from '@/components/thumbstrip'
 import VODPlayer from '@/components/vod-player'
 import { fetchInventory, invPathToData } from '@/lib/dash-video'
 import { db, invs } from '@/lib/turso'
-import { paramsToSrc } from '@/lib/vod-new'
 
 // minimum speech duration for inventory to be included
 const MIN_SPEECH_INV_S = 10

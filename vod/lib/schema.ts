@@ -44,24 +44,48 @@ export const exiftoolSchema = z.object({
 
 export type ExiftoolProbe = z.infer<typeof exiftoolSchema>
 
-export const voiceResultSchema = z.object({
-  duration: z.number(),
-  speechRatio: z.number(),
-  speechTotal: z.number().optional(),
-  params: z.object({
-    speechThreshold: z.number(),
-    hysteresis: z.number(),
-    padding: z.number(),
-    minGap: z.number(),
-  }),
-  segments: z.array(
-    z.object({
-      start: z.number(),
-      end: z.number(),
-      confidence: z.number(),
-    }),
-  ),
-})
+export const voiceResultSchema = z
+  .object({
+    duration: z.number(),
+    speechRatio: z.number(),
+    speechTotal: z.number().optional(),
+    params: z
+      .object({
+        speechThreshold: z.number().optional(),
+        minConfidence: z.number().optional(),
+        hysteresis: z.number(),
+        padding: z.number(),
+        minGap: z.number(),
+      })
+      .transform((data) => {
+        // changed speechThreshold to minConfidence
+        const {
+          hysteresis,
+          padding,
+          minGap,
+          minConfidence = data.speechThreshold,
+        } = data
+        if (minConfidence === undefined) {
+          throw new Error(
+            'Either speechThreshold (deprecated synonym) or minConfidence must be specified',
+          )
+        }
+        return { hysteresis, padding, minGap, minConfidence }
+      }),
+    segments: z.array(
+      z.object({
+        start: z.number(),
+        end: z.number(),
+        confidence: z.number(),
+      }),
+    ),
+  })
+  .transform((data) => ({
+    // speechTotal wasn't always computed at detection time
+    ...data,
+    speechTotal:
+      data.speechTotal ?? Math.round(data.duration * data.speechRatio),
+  }))
 
 export type VoiceResult = z.infer<typeof voiceResultSchema>
 
