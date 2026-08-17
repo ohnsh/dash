@@ -4,6 +4,7 @@ import type { VoiceResult } from '@dash/vod/schema'
 import { getSpeechTotal } from '@dash/vod/util'
 import { use, useEffect, useRef, useState } from 'react'
 import { type DashVideo, MIN_CONFIDENCE } from '@/lib/dash-video'
+import useCrop from '@/lib/use-crop'
 import { timestampFromFilename, tsToString } from '@/lib/vod-new'
 // src from pathname and searchparams
 // import { clientParamsToSrc } from '@/lib/vod-new'
@@ -19,6 +20,7 @@ export default function VODPlayer({
   const dv = videoPromise && use(videoPromise)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined)
+  // useCrop(videoRef, { x: 0, y: 1080, width: 1920, height: 1080 })
 
   src ??= dv?.src
 
