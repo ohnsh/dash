@@ -54,7 +54,7 @@ export function DashThumb({ video }: { video: DashVideo }) {
   const { width, height } = video.meta_ffprobe
   const timestamp =
     video.timestamp &&
-    tsToString(video.timestamp, undefined, {
+    tsToString(video.timestamp, {
       hour: 'numeric',
       minute: 'numeric',
     })
@@ -62,7 +62,9 @@ export function DashThumb({ video }: { video: DashVideo }) {
     ? keyToShortKey(video.key)
     : video.key
 
-  const speechTotal = getSpeechTotal(video, { minConfidence: MIN_CONFIDENCE })
+  const speechTotal = getSpeechTotal(video.voiceSegments, {
+    minConfidence: MIN_CONFIDENCE,
+  })
 
   return (
     <Link href={`?v=${hrefKey}`} aria-current={isSelected ? 'page' : undefined}>

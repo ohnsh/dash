@@ -61,7 +61,7 @@ async function index(inventoryPath: string) {
     .then((raw) => raw.map(vodVideoSchema.parse))
 
   const speechTotal = json.reduce(
-    (sum, current) => sum + getSpeechTotal(current),
+    (sum, current) => sum + getSpeechTotal(current.voiceSegments),
     0,
   )
 

@@ -4,11 +4,12 @@ import type { VoiceResult } from '@dash/vod/schema'
 import { getSpeechTotal } from '@dash/vod/util'
 import { use, useEffect, useRef, useState } from 'react'
 import { type DashVideo, MIN_CONFIDENCE } from '@/lib/dash-video'
+import { timestampFromFilename, tsToString } from '@/lib/vod-new'
 // src from pathname and searchparams
 // import { clientParamsToSrc } from '@/lib/vod-new'
 import css from './vod-player.module.css'
 
-export default function VodPlayer({
+export default function VODPlayer({
   src,
   videoPromise,
 }: {
@@ -30,7 +31,7 @@ export default function VodPlayer({
 
     // generate text track from voice segment data
     // (equivalent to <track> pointing to a VTT file)
-    if (!dv?.voiceSegments || !getSpeechTotal(dv)) return
+    if (!dv?.voiceSegments || !getSpeechTotal(dv.voiceSegments)) return
 
     const vtt = $video.addTextTrack('chapters', 'speech', 'en')
     const { segments } = dv.voiceSegments
@@ -83,10 +84,6 @@ export default function VodPlayer({
   const width = dv?.meta_ffprobe.width ?? 1920
   const height = dv?.meta_ffprobe.height ?? 1080
 
-  const speechTotal = dv
-    ? getSpeechTotal(dv, { minConfidence: MIN_CONFIDENCE })
-    : 0
-
   return (
     <div className={css.container}>
       {/* wrapper to reserve space even when <video> isn't rendered */}
@@ -108,7 +105,8 @@ export default function VodPlayer({
           </video>
         )}
       </div>
-      {dv?.voiceSegments && speechTotal > 0 && (
+      {dv && <Timestamp dashVideo={dv} />}
+      {dv?.voiceSegments && (
         <VoiceSegments
           voiceSegments={dv.voiceSegments}
           updatePosition={(pos: number) => {
@@ -124,6 +122,22 @@ export default function VodPlayer({
   )
 }
 
+function Timestamp({ dashVideo: dv }: { dashVideo: DashVideo }) {
+  const timestamp = timestampFromFilename(dv.name) || dv.date
+  let fmtTime: string
+
+  try {
+    fmtTime = tsToString(timestamp, {
+      dateStyle: 'medium',
+      timeStyle: 'medium',
+    })
+  } catch {
+    return null
+  }
+
+  return <div className={css.timestamp}>{fmtTime}</div>
+}
+
 function VoiceSegments({
   voiceSegments,
   updatePosition,
@@ -134,6 +148,11 @@ function VoiceSegments({
   activeIndex?: number
 }) {
   const { segments } = voiceSegments
+  const speechTotal = getSpeechTotal(voiceSegments, {
+    minConfidence: MIN_CONFIDENCE,
+  })
+
+  if (!speechTotal) return null
 
   return (
     <div className={css.segments}>

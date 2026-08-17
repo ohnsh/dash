@@ -1,15 +1,14 @@
 import { getSpeechTotal } from '@dash/vod/util'
 import { desc, gte } from 'drizzle-orm'
-import ThumbStrip from '@/components/thumbstrip'
-import VODPlayer from '@/components/vod-player'
-import { fetchInventory, invPathToData } from '@/lib/dash-video'
+import VODView from '@/components/vod-view'
+import { type DashVideo, MIN_CONFIDENCE } from '@/lib/dash-video'
 import { db, invs } from '@/lib/turso'
 
 // minimum speech duration for inventory to be included
 const MIN_SPEECH_INV_S = 10
 // minimum speech duration for individual video to be included
 const MIN_SPEECH_S = 5
-const NUM_INVS = 50
+const NUM_INVS = 10
 
 export default async function Home({ searchParams }: PageProps<'/'>) {
   let { v } = await searchParams
@@ -24,24 +23,12 @@ export default async function Home({ searchParams }: PageProps<'/'>) {
     .limit(NUM_INVS)
     .orderBy(desc(invs.date))
 
-  const { inventoryPath } = rows[0]
-  const { cam } = invPathToData(inventoryPath)
+  const filter = (vids: DashVideo[]) =>
+    vids.filter(
+      (v) =>
+        getSpeechTotal(v.voiceSegments, { minConfidence: MIN_CONFIDENCE }) >=
+        MIN_SPEECH_S,
+    )
 
-  const speechVids = fetchInventory(inventoryPath).then((raw) =>
-    raw.filter((v) => getSpeechTotal(v) >= MIN_SPEECH_S),
-  )
-
-  const currentVid = speechVids.then((vids) =>
-    vids.find((vid) => vid.key === v),
-  )
-  // fallback: paramsToSrc(searchParams)
-
-  return (
-    <article className="flex flex-col h-full">
-      <VODPlayer videoPromise={currentVid} />
-      <div className="basis-[170px] grow shrink-0 min-h-0">
-        <ThumbStrip videosPromise={speechVids} title={cam} tail />
-      </div>
-    </article>
-  )
+  return <VODView rows={rows} vKey={v} filter={filter} />
 }

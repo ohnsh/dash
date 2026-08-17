@@ -108,9 +108,9 @@ export function timestampFromFilename(filename: string) {
 
 export function tsToString(
   timestamp: string,
-  ...[locale, opts]: Parameters<Date['toLocaleString']>
+  opts: Parameters<Date['toLocaleString']>['1'],
 ): string {
-  return new Date(timestamp).toLocaleString(locale, {
+  return new Date(timestamp).toLocaleString(undefined, {
     ...opts,
     timeZone: 'utc',
   })

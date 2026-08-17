@@ -1,15 +1,15 @@
-import type { VODVideo } from './schema'
+import type { VoiceResult } from './schema'
 
 export const getSpeechTotal = (
-  v: VODVideo,
+  voiceSegments: VoiceResult | undefined,
   { minConfidence }: { minConfidence?: number } = {},
 ) => {
-  if (!v.voiceSegments) return 0
+  if (!voiceSegments) return 0
   if (typeof minConfidence === 'undefined') {
     // zod schema now handles computation of missing `speechTotal`
-    return v.voiceSegments.speechTotal
+    return voiceSegments.speechTotal
   }
-  return v.voiceSegments.segments.reduce(
+  return voiceSegments.segments.reduce(
     (prev, { start, end, confidence }) =>
       confidence <= minConfidence ? prev : prev + end - start,
     0,
