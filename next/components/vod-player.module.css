@@ -33,6 +33,15 @@
   }
 }
 
+.vidFooter {
+  display: flex;
+  justify-content: space-between;
+
+  button {
+    all: revert;
+  }
+}
+
 .segments {
   display: flex;
   justify-content: center;

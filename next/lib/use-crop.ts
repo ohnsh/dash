@@ -9,14 +9,15 @@ export interface Rect {
 
 export default function useCrop(
   videoRef: React.RefObject<HTMLVideoElement | null>,
-  rect: Rect,
+  src: string | undefined,
+  rect: Rect | undefined,
 ) {
   const srcVideoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D>(null)
 
   useEffect(() => {
-    if (!videoRef.current) return
+    if (!src || !rect || !videoRef.current) return
 
     // const { videoWidth, videoHeight } = videoRef.current
 
@@ -38,15 +39,19 @@ export default function useCrop(
     canvas.height = height
 
     srcVideo.crossOrigin = 'anonymous'
-    srcVideo.src = videoRef.current.src
+    // srcVideo.autoplay = true
+    srcVideo.src = src
 
     // srcVideo.hidden = true
     // document.body.appendChild(srcVideo)
+    if (!videoRef.current) return
+    videoRef.current.srcObject = canvas.captureStream(30)
 
     videoRef.current.addEventListener('play', (_e) => {
       srcVideo.play()
-      if (!videoRef.current) return
-      videoRef.current.srcObject = canvas.captureStream(30)
+    })
+    videoRef.current.addEventListener('pause', (_e) => {
+      srcVideo.pause()
     })
 
     let handle = srcVideo.requestVideoFrameCallback(renderFrame)
@@ -62,6 +67,8 @@ export default function useCrop(
       srcVideoRef.current = null
       canvasRef.current = null
       ctxRef.current = null
+      if (!videoRef.current) return
+      videoRef.current.srcObject = null
     }
-  }, [rect, videoRef.current])
+  }, [rect, src, videoRef.current])
 }
