@@ -36,6 +36,14 @@ Bun.serve({
           url: 'http://ing-wuuk.local/x/ch0.jpg',
           token: import.meta.env.WUUK_API_KEY,
         },
+        wyze1: {
+          url: 'http://ing-wyze-1.local/x/ch0.jpg',
+          token: import.meta.env.WYZE1_API_KEY,
+        },
+        wyze2: {
+          url: 'http://ing-wyze-2.local/x/ch0.jpg',
+          token: import.meta.env.WYZE2_API_KEY,
+        },
       }
       const isKey = (key: string): key is keyof typeof map => key in map
 

@@ -9,7 +9,8 @@ mdns_resolve() {
 # set -a
 WUUK_LOCAL_IP=$(mdns_resolve ing-wuuk.local)
 WYZE1_LOCAL_IP=$(mdns_resolve ing-wyze-1.local)
+WYZE2_LOCAL_IP=$(mdns_resolve ing-wyze-2.local)
 
 # Export all vars for docker compose environment.
-export WUUK_LOCAL_IP WYZE1_LOCAL_IP
+export WUUK_LOCAL_IP WYZE1_LOCAL_IP WYZE2_LOCAL_IP
 # set +a

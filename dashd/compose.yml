@@ -10,6 +10,7 @@ services:
       - MMTX_API_URL=host.docker.internal:9997/v3
       - WUUK_API_KEY
       - WYZE1_API_KEY
+      - WYZE2_API_KEY
     volumes:
       - ./src:/app/src:ro
     ports:
@@ -18,6 +19,7 @@ services:
       - host.docker.internal:host-gateway
       - ing-wuuk.local:$WUUK_LOCAL_IP
       - ing-wyze-1.local:$WYZE1_LOCAL_IP
+      - ing-wyze-2.local:$WYZE2_LOCAL_IP
     networks:
       tunnelnet:
         ipv4_address: 172.19.0.3
