@@ -3,12 +3,24 @@ import { BUCKET_URL, timestampFromFilename } from './vod-new'
 
 export const MIN_CONFIDENCE = 0.85
 
+const wyzeTimestamp = (date: string, filename: string) => {
+  const hours = filename.slice(0, 2)
+  const isoDate = `${date}T${hours}:00:00Z`
+  try {
+    return new Date(isoDate).toISOString()
+  } catch {
+    return undefined
+  }
+}
+
 export function toDashVideo(video: VODVideo, inventoryPath: string) {
   const pathData = invPathToData(inventoryPath)
   const key = `${pathData.keyPath}/${video.name}`
   const src = `${pathData.baseURL}/${video.name}`
   const thumb = `${pathData.baseURL}/${video.assets[0]}`
-  const timestamp = timestampFromFilename(video.name)
+  const timestamp =
+    timestampFromFilename(video.name) ??
+    wyzeTimestamp(pathData.date, video.name)
 
   return { key, timestamp, src, thumb, ...pathData, ...video }
 }

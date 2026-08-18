@@ -89,7 +89,7 @@ const filenameDateMatcher =
 export function timestampFromFilename(filename: string) {
   const match = filename.match(filenameDateMatcher)
   if (!match?.groups) {
-    console.error(`getTimestamp could not match ${filename}`)
+    // console.log(`getTimestamp could not match ${filename}`)
     return undefined
   }
   const { year, month, day, hours, minutes, seconds } = match.groups

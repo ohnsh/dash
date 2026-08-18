@@ -6,31 +6,41 @@ import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { use, useEffect, useRef } from 'react'
 import { type DashVideo, MIN_CONFIDENCE } from '@/lib/dash-video'
+import { InventoryRecord } from '@/lib/turso'
 import {
   clientParamsToKey,
   dateInPathname,
   keyToShortKey,
   tsToString,
 } from '@/lib/vod-new'
+import { useInventory } from './inventory-provider'
 import css from './thumbstrip.module.css'
 
 export default function Thumbstrip({
   videosPromise,
   title,
+  record,
   tail = false,
 }: {
   videosPromise: Promise<DashVideo[]>
   title: string
+  record: InventoryRecord
   tail?: boolean
 }) {
   const videos = use(videosPromise)
   const stripRef = useRef<HTMLUListElement>(null)
+  const { inventoryFilter } = useInventory()
 
   useEffect(() => {
     if (!stripRef.current) return
     const fallback = tail ? 'right' : undefined
     scrollSelected(stripRef.current, fallback)
   }, [tail])
+
+  // hack to preserve client-side filtering
+  if (inventoryFilter([record]).length === 0) {
+    return null
+  }
 
   return (
     <article className={css.thumbstrip}>

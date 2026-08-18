@@ -60,6 +60,8 @@ export default async function VODView({
         {inventories.map((inv) => (
           <ThumbStrip
             key={inv.inventoryPath}
+            // including the record is a hack to preserve client-side filtering.
+            record={inv}
             videosPromise={inv.videosPromise}
             title={getTitle(inv)}
             tail

@@ -4,7 +4,7 @@ import InventoryProvider from '@/components/inventory-provider'
 import { db, invs } from '@/lib/turso'
 
 const queryInventories = cache(
-  async () => db.select().from(invs).orderBy(desc(invs.date)).limit(100),
+  async () => db.select().from(invs).orderBy(desc(invs.date)).limit(200),
   //  await dbQuery(`
   //    SELECT inventory_path, date
   //    FROM vod_index

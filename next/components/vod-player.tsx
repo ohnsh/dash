@@ -5,7 +5,7 @@ import { getSpeechTotal } from '@dash/vod/util'
 import { use, useEffect, useRef, useState } from 'react'
 import { type DashVideo, MIN_CONFIDENCE } from '@/lib/dash-video'
 // import useCrop from '@/lib/use-crop'
-import { timestampFromFilename, tsToString } from '@/lib/vod-new'
+import { tsToString } from '@/lib/vod-new'
 // src from pathname and searchparams
 // import { clientParamsToSrc } from '@/lib/vod-new'
 import css from './vod-player.module.css'
@@ -124,7 +124,7 @@ export default function VODPlayer({
 }
 
 function Timestamp({ dashVideo: dv }: { dashVideo: DashVideo }) {
-  const timestamp = timestampFromFilename(dv.name) || dv.date
+  const timestamp = dv.timestamp || dv.date
   let fmtTime: string
 
   try {

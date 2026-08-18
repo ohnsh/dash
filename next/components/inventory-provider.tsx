@@ -16,6 +16,7 @@ export interface InventoryContext {
   inventoryMap: InventoryMap | undefined
   setInventories: (i: InventoryRecord[]) => void
   toggleFilter: () => void
+  inventoryFilter: (i: InventoryRecord[]) => InventoryRecord[]
 }
 
 const InventoryContext = createContext<InventoryContext | undefined>(undefined)
@@ -52,6 +53,17 @@ export default function InventoryProvider({
     setIsFiltered((prev) => !prev)
   }, [])
 
+  // for components that get inventory lists elsewhere to stay in sync with filtering.
+  const inventoryFilter = useCallback(
+    (i: InventoryRecord[]) => {
+      if (!isFiltered) {
+        return i
+      }
+      return filter(i)
+    },
+    [filter, isFiltered],
+  )
+
   useEffect(() => {
     const keyHandler = (event: KeyboardEvent) => {
       if (event.altKey && event.code === 'KeyB') {
@@ -73,6 +85,7 @@ export default function InventoryProvider({
         inventoryMap,
         toggleFilter,
         setInventories,
+        inventoryFilter,
       }}
     >
       {children}
