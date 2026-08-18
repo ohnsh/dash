@@ -26,8 +26,9 @@ export default async function Home({ searchParams }: PageProps<'/'>) {
   const filter = (vids: DashVideo[]) =>
     vids.filter(
       (v) =>
+        v.tags ||
         getSpeechTotal(v.voiceSegments, { minConfidence: MIN_CONFIDENCE }) >=
-        MIN_SPEECH_S,
+          MIN_SPEECH_S,
     )
 
   return <VODView rows={rows} vKey={v} filter={filter} />

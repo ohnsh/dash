@@ -91,6 +91,7 @@ export type VoiceResult = z.infer<typeof voiceResultSchema>
 
 export const vodVideoSchema = z.object({
   name: z.string(),
+  tags: z.array(z.string()).optional(),
   type: z.enum(['hls', 'mp4', 'mov']),
   assets: z.array(z.string()),
   meta_exiftool: exiftoolSchema,

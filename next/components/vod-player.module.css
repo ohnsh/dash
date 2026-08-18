@@ -33,6 +33,7 @@
 
   time {
     position: absolute;
+    pointer-events: none;
     inset: auto 0 0 auto;
     font-weight: 500;
     font-size: var(--text-sm);
