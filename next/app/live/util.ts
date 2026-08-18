@@ -1,8 +1,9 @@
 export const pathMap = {
   wuuk: 'wuuk-patch',
   wyze1: 'wyze1-patch',
-  desk: 'desk',
-  quad: 'quad',
+  wyze2: 'wyze2',
+  // desk: 'desk',
+  // quad: 'quad',
 } as const
 
 export type StreamKey = keyof typeof pathMap
