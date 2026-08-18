@@ -105,8 +105,8 @@ export default function VODPlayer({
             </a>
           </video>
         )}
+        {dv && <Timestamp dashVideo={dv} />}
       </div>
-      <div className={css.vidFooter}>{dv && <Timestamp dashVideo={dv} />}</div>
       {dv?.voiceSegments && (
         <VoiceSegments
           voiceSegments={dv.voiceSegments}
@@ -126,17 +126,27 @@ export default function VODPlayer({
 function Timestamp({ dashVideo: dv }: { dashVideo: DashVideo }) {
   const timestamp = dv.timestamp || dv.date
   let fmtTime: string
+  let fmtDate: string
 
   try {
+    fmtDate = tsToString(timestamp, {
+      month: 'short',
+      day: 'numeric',
+    })
     fmtTime = tsToString(timestamp, {
-      dateStyle: 'medium',
-      timeStyle: 'medium',
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit',
     })
   } catch {
     return null
   }
 
-  return <div className={css.timestamp}>{fmtTime}</div>
+  return (
+    <time dateTime={timestamp}>
+      {fmtTime} / {fmtDate}
+    </time>
+  )
 }
 
 function VoiceSegments({
