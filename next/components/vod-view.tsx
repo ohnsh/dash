@@ -48,7 +48,7 @@ export default async function VODView({
   }
 
   return (
-    <article className="flex flex-col h-full">
+    <article className="flex flex-col">
       {fullKey ? (
         <Suspense fallback={<VODPlayer src={src} />}>
           <VODPlayer videoPromise={videoPromise} />
@@ -56,7 +56,7 @@ export default async function VODView({
       ) : (
         <VODPlayer />
       )}
-      <div className="basis-[170px] grow shrink-0 min-h-0">
+      <div>
         {inventories.map((inv) => (
           <ThumbStrip
             key={inv.inventoryPath}

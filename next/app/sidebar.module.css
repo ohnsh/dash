@@ -1,14 +1,17 @@
 .sidebar {
   padding-block: 1rem;
   position: fixed;
-  inset: 0 auto 0 0;
+  /* the top inset prevents scrolled content from peeking out above the header. */
+  inset: 1rem auto 0 0;
   z-index: 1;
-  padding-block: 3rem 1rem;
-  padding-inline: 1rem 2rem;
+  padding-block: 2rem 1rem;
+  padding-inline: 1rem 3rem;
   background: var(--background);
   white-space: nowrap;
   /* causes grid 'auto' to shrink below content size */
   /* overflow-x: auto; */
+  /* scroll independently of main content */
+  overflow-y: auto;
 
   transform: translateX(-100%);
   transition: transform 0.15s ease-out;
@@ -85,7 +88,9 @@
     position: static;
     transform: unset;
     padding-block: unset;
-    padding-inline: 0 1rem;
+    padding-inline: 0 2rem;
+    /* this seems redundant as a grid item, but it allows the inline padding to work */
+    min-width: fit-content;
     background: unset;
 
     grid-column: 1;

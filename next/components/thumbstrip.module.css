@@ -36,7 +36,7 @@
     img {
       /* the tailwind reset value of 100% has some interesting effects when there are a
       bunch of siblings. */
-      max-width: 220px;
+      max-width: 200px;
     }
   }
 }
