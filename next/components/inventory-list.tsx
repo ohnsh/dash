@@ -24,7 +24,7 @@ export default function InventoryList({ numShown = 8 }: { numShown?: number }) {
 
   return (
     <section>
-      <ul>
+      <ul id="inventory-list-leftnav">
         {visibleDates.map((date) => (
           <li key={date}>
             <Link href={`/${date}`} onClick={closeSidebar}>
@@ -33,7 +33,12 @@ export default function InventoryList({ numShown = 8 }: { numShown?: number }) {
           </li>
         ))}
       </ul>
-      <button type="button" onClick={toggleExpanded}>
+      <button
+        type="button"
+        onClick={toggleExpanded}
+        aria-expanded={isExpanded || undefined}
+        aria-controls="inventory-list-leftnav"
+      >
         {isExpanded ? 'See less' : 'See more'}
       </button>
     </section>
