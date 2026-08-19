@@ -1,52 +1,46 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
+import { tsToString } from '@/lib/vod-new'
 // import { r2PathToRoute } from '@/lib/vod'
 import { useInventory } from './inventory-provider'
 import { useSidebarState } from './sidebar-state-provider'
 
-export default function InventoryList() {
+export default function InventoryList({ numShown = 8 }: { numShown?: number }) {
+  const [isExpanded, setIsExpanded] = useState(false)
   const { inventoryMap } = useInventory()
+  const { close: closeSidebar } = useSidebarState()
 
   if (!inventoryMap) return null
 
+  const toggleExpanded = () => {
+    setIsExpanded((prev) => !prev)
+  }
+  const dates = Object.entries(inventoryMap)
+    .filter(([, paths]) => (paths?.length ?? 0) > 0)
+    .map(([date]) => date)
+  const visibleDates = isExpanded ? dates : dates.slice(0, numShown)
+
   return (
-    <ul>
-      {Object.entries(inventoryMap).map(
-        ([date, paths]) =>
-          paths && (
-            <li key={date}>
-              <DayMenu date={date} inventories={paths} />
-            </li>
-          ),
-      )}
-    </ul>
+    <section>
+      <ul>
+        {visibleDates.map((date) => (
+          <li key={date}>
+            <Link href={`/${date}`} onClick={closeSidebar}>
+              {tsToString(date, { month: 'short', day: 'numeric' })}
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <button type="button" onClick={toggleExpanded}>
+        {isExpanded ? 'See less' : 'See more'}
+      </button>
+    </section>
   )
 }
 
-function isoDateToTitle(date: string) {
-  return new Date(date).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    timeZone: 'utc',
-  })
-}
-
-function DayMenu({
-  date,
-  inventories,
-}: {
-  date: string
-  inventories: string[]
-}) {
-  const { close: closeSidebar } = useSidebarState()
-
-  return (
-    <Link href={`/${date}`} onClick={closeSidebar}>
-      {isoDateToTitle(date)}
-    </Link>
-  )
-  /*
+/*
   return (
     <details>
       <summary>
@@ -60,14 +54,3 @@ function DayMenu({
     </details>
   )
 */
-}
-
-// function InventoryItem({ inventory }: { inventory: string }) {
-//   const route = r2PathToRoute(inventory)
-//   const cam = route.split('/').at(-1)
-//   return (
-//     <li>
-//       <Link href={route}>{cam}</Link>
-//     </li>
-//   )
-// }
