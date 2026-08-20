@@ -63,15 +63,18 @@
     font-weight: 600;
     padding: .1rem .5rem;
     border-radius: var(--radius-sm);
+    /* keep auto outline styling but prevent clipping at the edges of scroll containers */
+    outline-offset: -1px;
+
+    &:hover {
+      color: var(--foreground);
+      border-color: var(--foreground);
+    }
   }
 
   .cropButton {
     border: solid 1px hsl(from var(--foreground) h s l / .4);
     justify-self: start;
-
-    &:hover {
-      border-color: var(--color-accent);
-    }
   }
 
   .segments {
@@ -89,11 +92,13 @@
       gap: calc(var(--spacing) * 2);
       overflow-x: auto;
       /* make room for outline */
-      padding: 1px;
+      padding: 2px;
     }
 
     .active button {
-      outline: solid 1px var(--color-accent);
+      filter: brightness(120%);
+      color: var(--color-accent);
+      /* outline: solid 1px var(--color-accent); */
     }
   }
 }

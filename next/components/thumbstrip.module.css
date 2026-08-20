@@ -5,8 +5,8 @@
     list-style: none;
     display: flex;
     gap: calc(var(--spacing) * 2);
-    /* just enough room for outline */
-    padding: 2px;
+    /* just enough room for focus outline */
+    padding: 3px;
     overflow-x: auto;
 
     a {
@@ -15,6 +15,7 @@
       overflow: clip;
       position: relative;
       color: inherit;
+      outline-offset: 0px;
 
       span {
         position: absolute;
@@ -31,6 +32,7 @@
 
     [aria-current] {
       outline: solid var(--color-accent) 2px;
+      outline-offset: 1px;
     }
 
     img {
