@@ -16,7 +16,10 @@
 
   /* when no video is selected */
   &:not(:has(video)) {
-    min-height: 200px;
+    /* keep reasonable aspect ratio */
+    /* make more room for thumbnails below player */
+    width: 90vh;
+    max-height: 50vh;
   }
 
   span {
