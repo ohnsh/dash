@@ -8,16 +8,19 @@
     backdrop-filter: none;
   }
 
-  /* main canvas */
-  >.cropCanvas {
+  button {
     display: block;
-    height: 90%;
-    outline-offset: -2px;
-    outline-width: 2px;
+    pointer-events: auto;
+    cursor: pointer;
 
-    >canvas {
-      height: 100%;
+    &:focus-visible {
+      outline: solid 2px var(--color-accent);
     }
+  }
+
+  canvas {
+    max-width: 100%;
+    box-shadow: var(--shadow-md);
   }
 
   /* wraps all canvases, either as a <div> or a <button> */
@@ -27,34 +30,32 @@
     box-shadow: var(--shadow-lg);
     transition: all .2s;
   }
+}
 
-  button {
-    pointer-events: auto;
-    cursor: pointer;
+.main {
+  padding: 2px;
+
+  .cropCanvas {
+    width: 90%;
+  }
+}
+
+.pip {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 27.5%;
+  display: flex;
+  gap: 6px;
+  margin: min(16px, 2%);
+  flex-direction: column;
+  pointer-events: auto;
+
+  .cropCanvas:hover {
+    transform: scale(103%);
   }
 
-  .pipContainer {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 27.5%;
-    display: flex;
-    gap: 6px;
-    margin: min(16px, 2%);
-    flex-direction: column;
-    pointer-events: auto;
-
-    canvas {
-      width: 100%;
-      box-shadow: var(--shadow-md);
-    }
-
-    .cropCanvas:hover {
-      transform: scale(103%);
-    }
-
-    &:hover .cropCanvas:not(:hover, :focus-visible) {
-      filter: brightness(60%);
-    }
+  &:hover .cropCanvas:not(:hover, :focus-visible) {
+    filter: brightness(60%);
   }
 }

@@ -8,53 +8,76 @@ export type Rect = readonly [
   height: number,
 ]
 
-const rects = {
-  topLeft: [0, 0, 1920, 1080],
-  topRight: [1920, 0, 1920, 1080],
-  bottomRight: [1920, 1080, 1920, 1080],
-  bottomLeft: [0, 1080, 1920, 1080],
-} satisfies Record<string, Rect>
+interface Source {
+  id: 'topLeft' | 'topRight' | 'bottomRight' | 'bottomLeft'
+  name: string // descriptive name
+  rect: Rect
+}
 
-type RectId = keyof typeof rects
-type Source = [RectId, Rect]
+const sources: Source[] = [
+  {
+    id: 'topLeft',
+    name: 'Display 1 (top left)',
+    rect: [0, 0, 1920, 1080],
+  },
+  {
+    id: 'topRight',
+    name: 'Display 2 (top right)',
+    rect: [1920, 0, 1920, 1080],
+  },
+  {
+    id: 'bottomRight',
+    name: 'Side cam (bottom right)',
+    rect: [1920, 1080, 1920, 1080],
+  },
+  {
+    id: 'bottomLeft',
+    name: 'Front cam (bottom left)',
+    rect: [0, 1080, 1920, 1080],
+  },
+]
 
 export default function CropOverlay({
   videoRef,
   main: mainInitial = 'topLeft',
 }: {
   videoRef: React.RefObject<HTMLVideoElement | null>
-  main?: RectId
+  main?: Source['id']
 }) {
   const [pipEnabled, setPipEnabled] = useState(true)
-  const [main, setMain] = useState<RectId>(mainInitial)
+  const [main, setMain] = useState<Source['id']>(mainInitial)
 
-  const mainSource = Object.entries(rects).find(([id]) => id === main) as
-    | Source
-    | undefined
-  const pipSources = Object.entries(rects).filter(
-    ([id]) => id !== main,
-  ) as Source[]
+  const mainSource = sources.find(({ id }) => id === main)
+  const pipSources = sources.filter(({ id }) => id !== main)
 
-  if (!mainSource) return null
+  if (!mainSource) {
+    console.error(`No source found for id ${mainSource}`)
+    return null
+  }
 
   return (
     <div className={css.container}>
-      <CropCanvas
-        videoRef={videoRef}
-        source={mainSource}
-        onClick={() => setPipEnabled((prev) => !prev)}
-      />
+      <section
+        className={css.main}
+        aria-label={`Main view: ${mainSource.name}`}
+      >
+        <CropCanvas
+          videoRef={videoRef}
+          source={mainSource}
+          onClick={() => setPipEnabled((prev) => !prev)}
+        />
+      </section>
       {pipEnabled && (
-        <div className={css.pipContainer}>
+        <section className={css.pip} aria-label="Picture-in-picture views">
           {pipSources.map((source) => (
             <CropCanvas
-              key={source[0]}
+              key={source.id}
               videoRef={videoRef}
               source={source}
-              onClick={() => setMain(source[0])}
+              onClick={() => setMain(source.id)}
             />
           ))}
-        </div>
+        </section>
       )}
     </div>
   )
@@ -70,8 +93,7 @@ function CropCanvas({
   onClick?: () => void
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [rectId, bounds] = source
-  const [, , width, height] = bounds
+  const [, , width, height] = source.rect
 
   useEffect(() => {
     if (!videoRef.current || !canvasRef.current) return
@@ -82,7 +104,11 @@ function CropCanvas({
 
     let cbHandle: number
     const draw = () => {
-      ctx.drawImage(video, ...bounds, ...[0, 0, canvas.width, canvas.height])
+      ctx.drawImage(
+        video,
+        ...source.rect,
+        ...[0, 0, canvas.width, canvas.height],
+      )
     }
     const cb: VideoFrameRequestCallback = (_now, _metadata) => {
       draw()
@@ -96,18 +122,29 @@ function CropCanvas({
     return () => {
       video.cancelVideoFrameCallback(cbHandle)
     }
-  }, [videoRef, bounds])
+  }, [videoRef, source])
 
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} className={css.cropCanvas}>
+      <button
+        type="button"
+        onClick={onClick}
+        className={css.cropCanvas}
+        aria-label={`Switch main view to ${source.name}`}
+      >
         <canvas ref={canvasRef} width={width} height={height} />
       </button>
     )
   } else {
     return (
       <div className={css.cropCanvas}>
-        <canvas ref={canvasRef} width={width} height={height} />
+        <canvas
+          ref={canvasRef}
+          width={width}
+          height={height}
+          role="img"
+          aria-label={source.name}
+        />
       </div>
     )
   }
