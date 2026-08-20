@@ -98,7 +98,17 @@ function CropCanvas({
     }
   }, [videoRef, bounds])
 
-  return (
-    <canvas ref={canvasRef} width={width} height={height} onClick={onClick} />
-  )
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={css.cropCanvas}>
+        <canvas ref={canvasRef} width={width} height={height} />
+      </button>
+    )
+  } else {
+    return (
+      <div className={css.cropCanvas}>
+        <canvas ref={canvasRef} width={width} height={height} />
+      </div>
+    )
+  }
 }

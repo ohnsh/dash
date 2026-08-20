@@ -84,6 +84,7 @@
     grid-column: 2;
     display: flex;
     justify-content: center;
+    align-items: center;
     gap: calc(var(--spacing) * 3);
     min-width: 200px;
 

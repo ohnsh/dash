@@ -8,21 +8,29 @@
     backdrop-filter: none;
   }
 
-  >canvas {
+  /* main canvas */
+  >.cropCanvas {
     display: block;
     height: 90%;
-    margin: 2px;
-    box-shadow: var(--shadow-lg);
+    outline-offset: -2px;
+    outline-width: 2px;
+
+    >canvas {
+      height: 100%;
+    }
   }
 
-  canvas {
+  /* wraps all canvases, either as a <div> or a <button> */
+  .cropCanvas {
+    overflow: clip;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    transition: all .2s;
+  }
+
+  button {
     pointer-events: auto;
     cursor: pointer;
-    border-radius: var(--radius-md);
-
-    &:hover {
-      outline: solid 2px var(--color-accent);
-    }
   }
 
   .pipContainer {
@@ -34,10 +42,19 @@
     gap: 6px;
     margin: min(16px, 2%);
     flex-direction: column;
+    pointer-events: auto;
 
     canvas {
       width: 100%;
       box-shadow: var(--shadow-md);
+    }
+
+    .cropCanvas:hover {
+      transform: scale(103%);
+    }
+
+    &:hover .cropCanvas:not(:hover, :focus-visible) {
+      filter: brightness(60%);
     }
   }
 }
