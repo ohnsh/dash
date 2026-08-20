@@ -111,28 +111,31 @@ export default function VODPlayer({
         {isQuad && overlayEnabled && <CropOverlay videoRef={videoRef} />}
         {dv && <Timestamp dashVideo={dv} />}
       </div>
-      {isQuad && (
-        <button
-          type="button"
-          onClick={() => {
-            setOverlayEnabled((prev) => !prev)
-          }}
-        >
-          {overlayEnabled ? 'Uncrop' : 'Crop'}
-        </button>
-      )}
-      {dv?.voiceSegments && (
-        <VoiceSegments
-          voiceSegments={dv.voiceSegments}
-          updatePosition={(pos: number) => {
-            if (!videoRef.current) return
+      <div className={css.footer}>
+        {isQuad && (
+          <button
+            type="button"
+            className={css.cropButton}
+            onClick={() => {
+              setOverlayEnabled((prev) => !prev)
+            }}
+          >
+            {overlayEnabled ? 'Uncrop' : 'Crop'}
+          </button>
+        )}
+        {dv?.voiceSegments && (
+          <VoiceSegments
+            voiceSegments={dv.voiceSegments}
+            updatePosition={(pos: number) => {
+              if (!videoRef.current) return
 
-            videoRef.current.currentTime = pos
-            videoRef.current.play()
-          }}
-          activeIndex={activeIndex}
-        />
-      )}
+              videoRef.current.currentTime = pos
+              videoRef.current.play()
+            }}
+            activeIndex={activeIndex}
+          />
+        )}
+      </div>
     </div>
   )
 }
