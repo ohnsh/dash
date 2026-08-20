@@ -84,6 +84,8 @@
       display: flex;
       gap: calc(var(--spacing) * 2);
       overflow-x: auto;
+      /* make room for outline */
+      padding: 1px;
     }
 
     .active button {
