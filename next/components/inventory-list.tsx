@@ -7,7 +7,11 @@ import { tsToString } from '@/lib/vod-new'
 import { useInventory } from './inventory-provider'
 import { useSidebarState } from './sidebar-state-provider'
 
-export default function InventoryList({ numShown = 8 }: { numShown?: number }) {
+export default function InventoryList({
+  numShown = 10,
+}: {
+  numShown?: number
+}) {
   const [isExpanded, setIsExpanded] = useState(false)
   const { inventoryMap } = useInventory()
   const { close: closeSidebar } = useSidebarState()

@@ -4,8 +4,8 @@ import type { VoiceResult } from '@dash/vod/schema'
 import { getSpeechTotal } from '@dash/vod/util'
 import { use, useEffect, useRef, useState } from 'react'
 import { type DashVideo, MIN_CONFIDENCE } from '@/lib/dash-video'
-// import useCrop from '@/lib/use-crop'
 import { tsToString } from '@/lib/vod-new'
+import CropOverlay from './crop-overlay'
 // src from pathname and searchparams
 // import { clientParamsToSrc } from '@/lib/vod-new'
 import css from './vod-player.module.css'
@@ -20,6 +20,7 @@ export default function VODPlayer({
   const dv = videoPromise && use(videoPromise)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined)
+  const [overlayEnabled, setOverlayEnabled] = useState(false)
   src ??= dv?.src
   // useCrop(src, videoRef)
 
@@ -84,6 +85,8 @@ export default function VODPlayer({
 
   const width = dv?.meta_ffprobe.width ?? 1920
   const height = dv?.meta_ffprobe.height ?? 1080
+  // this needs to be better
+  const isQuad = width === 3840
 
   return (
     <div className={css.container}>
@@ -105,8 +108,19 @@ export default function VODPlayer({
             </a>
           </video>
         )}
+        {isQuad && overlayEnabled && <CropOverlay videoRef={videoRef} />}
         {dv && <Timestamp dashVideo={dv} />}
       </div>
+      {isQuad && (
+        <button
+          type="button"
+          onClick={() => {
+            setOverlayEnabled((prev) => !prev)
+          }}
+        >
+          {overlayEnabled ? 'Uncrop' : 'Crop'}
+        </button>
+      )}
       {dv?.voiceSegments && (
         <VoiceSegments
           voiceSegments={dv.voiceSegments}

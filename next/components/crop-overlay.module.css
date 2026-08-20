@@ -1,0 +1,16 @@
+.container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  backdrop-filter: brightness(50%);
+
+  canvas {
+    pointer-events: all;
+    display: block;
+    height: 90%;
+    margin-inline: auto;
+    border: solid 1px var(--color-accent);
+    border-radius: var(--radius-md);
+    /* box-shadow: var(--shadow-md); */
+  }
+}
