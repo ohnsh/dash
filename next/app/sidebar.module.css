@@ -21,6 +21,10 @@
     transform: translateX(0);
   }
 
+  button {
+    cursor: pointer;
+  }
+
   h2 {
     font-weight: bold;
     font-family: var(--font-mono);

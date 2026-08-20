@@ -25,8 +25,7 @@ export default function CropOverlay({
   videoRef: React.RefObject<HTMLVideoElement | null>
   main?: RectId
 }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [pipEnabled, setPipEnabled] = useState(false)
+  const [pipEnabled, setPipEnabled] = useState(true)
   const [main, setMain] = useState<RectId>(mainInitial)
 
   const mainSource = Object.entries(rects).find(([id]) => id === main) as

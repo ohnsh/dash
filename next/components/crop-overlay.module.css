@@ -2,7 +2,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  backdrop-filter: brightness(30%) blur(2px);
+  backdrop-filter: brightness(35%) blur(1px);
 
   :global(video:hover)~& {
     backdrop-filter: none;
