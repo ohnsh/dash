@@ -13,17 +13,66 @@ const rects = {
   topRight: [1920, 0, 1920, 1080],
   bottomRight: [1920, 1080, 1920, 1080],
   bottomLeft: [0, 1080, 1920, 1080],
-} as const
+} satisfies Record<string, Rect>
+
+type RectId = keyof typeof rects
+type Source = [RectId, Rect]
 
 export default function CropOverlay({
   videoRef,
-  bounds = rects.topLeft,
+  main: mainInitial = 'topLeft',
 }: {
   videoRef: React.RefObject<HTMLVideoElement | null>
-  bounds?: Rect
+  main?: RectId
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [pipEnabled, setPipEnabled] = useState(false)
+  const [main, setMain] = useState<RectId>(mainInitial)
+
+  const mainSource = Object.entries(rects).find(([id]) => id === main) as
+    | Source
+    | undefined
+  const pipSources = Object.entries(rects).filter(
+    ([id]) => id !== main,
+  ) as Source[]
+
+  if (!mainSource) return null
+
+  return (
+    <div className={css.container}>
+      <CropCanvas
+        videoRef={videoRef}
+        source={mainSource}
+        onClick={() => setPipEnabled((prev) => !prev)}
+      />
+      {pipEnabled && (
+        <div className={css.pipContainer}>
+          {pipSources.map((source) => (
+            <CropCanvas
+              key={source[0]}
+              videoRef={videoRef}
+              source={source}
+              onClick={() => setMain(source[0])}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CropCanvas({
+  videoRef,
+  source,
+  onClick,
+}: {
+  videoRef: React.RefObject<HTMLVideoElement | null>
+  source: Source
+  onClick?: () => void
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [rectId, bounds] = source
+  const [, , width, height] = bounds
 
   useEffect(() => {
     if (!videoRef.current || !canvasRef.current) return
@@ -35,18 +84,6 @@ export default function CropOverlay({
     let cbHandle: number
     const draw = () => {
       ctx.drawImage(video, ...bounds, ...[0, 0, canvas.width, canvas.height])
-      if (pipEnabled) {
-        Object.values(rects).forEach((rect: Rect, i) => {
-          ctx.drawImage(
-            video,
-            ...rect,
-            canvas.width - 360,
-            canvas.height - 200 * (i + 1),
-            320,
-            180,
-          )
-        })
-      }
     }
     const cb: VideoFrameRequestCallback = (_now, _metadata) => {
       draw()
@@ -60,18 +97,9 @@ export default function CropOverlay({
     return () => {
       video.cancelVideoFrameCallback(cbHandle)
     }
-  }, [videoRef, bounds, pipEnabled])
-
-  const [, , width, height] = bounds
+  }, [videoRef, bounds])
 
   return (
-    <div className={css.container}>
-      <canvas
-        ref={canvasRef}
-        width={width}
-        height={height}
-        onClick={() => setPipEnabled((prev) => !prev)}
-      />
-    </div>
+    <canvas ref={canvasRef} width={width} height={height} onClick={onClick} />
   )
 }
