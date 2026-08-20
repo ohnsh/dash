@@ -12,6 +12,7 @@
   background-color: hsl(0 0 100% / .03);
   /* backdrop-filter: brightness(150%); */
   min-width: 300px;
+  min-height: 0;
   overflow: clip;
 
   /* when no video is selected */
