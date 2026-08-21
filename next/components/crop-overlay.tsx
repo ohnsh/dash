@@ -115,7 +115,7 @@ function CropCanvas({
       cbHandle = video.requestVideoFrameCallback(cb)
     }
 
-    /* provide immediate feedback when pipEnabled state changes */
+    // provide immediate feedback when pipEnabled changes
     draw()
     cbHandle = video.requestVideoFrameCallback(cb)
 
