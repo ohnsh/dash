@@ -20,7 +20,6 @@ COPY --from=base /app/package.json ./
 COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/src ./src
 
-# need to look at bun's docker docs. this doesn't work.
 USER bun
 
 # ENV NODE_ENV=production

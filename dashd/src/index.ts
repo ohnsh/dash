@@ -1,7 +1,9 @@
 import Bun from 'bun'
+import { appendFile } from 'node:fs/promises'
 import withCORS from './with-cors'
 
 const MMTX_API_URL = import.meta.env.MMTX_API_URL || 'http://localhost:9997/v3'
+const SENSOR_DATA_FILE = '/mnt/data/sensor-data.json'
 
 const eventStreamMap = new Map<string, ReadableStreamDefaultController>()
 
@@ -159,5 +161,28 @@ Bun.serve({
       }
       return new Response('thx.')
     },
+
+    '/mx/sensor': {
+      POST: async (req) => {
+        const auth = req.headers.get('Authorization')
+        if (!auth || !checkAuthHeader(auth)) {
+          console.log(`Unauthorized POST /sensor (${auth})`)
+
+          return new Response(null, {
+            status: 401,
+            statusText: 'Unauthorized',
+            headers: { 'WWW-Authenticate': 'Bearer' },
+          })
+        }
+
+        const data = await req.json()
+        appendFile(SENSOR_DATA_FILE, JSON.stringify(data) + '\n')
+
+        return new Response(null, { status: 204 })
+      },
+    },
   },
 })
+
+const checkAuthHeader = (auth: string) =>
+  auth === `Bearer ${import.meta.env.SENSOR_PUSH_TOKEN}`

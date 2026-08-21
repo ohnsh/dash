@@ -3,5 +3,5 @@
 # https://github.com/mpatfield/homebridge-dummy/wiki/Webhooks
 trigger_switch() {
   . .env
-  curl "http://r314.local:63743/?id=${DUMMY_SWITCH_ID}&set=ProgrammableSwitchEvent&value=0"
+  curl "http://r314.local:63743/?id=${HB_DUMMY_SWITCH_ID}&set=ProgrammableSwitchEvent&value=0"
 }
