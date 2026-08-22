@@ -1,5 +1,5 @@
-import Bun from 'bun'
-import { appendFile } from 'node:fs/promises'
+// import { appendFile } from 'node:fs/promises'
+import Bun, { sql } from 'bun'
 import withCORS from './with-cors'
 
 const MMTX_API_URL = import.meta.env.MMTX_API_URL || 'http://localhost:9997/v3'
@@ -175,14 +175,37 @@ Bun.serve({
           })
         }
 
-        const data = await req.json()
-        appendFile(SENSOR_DATA_FILE, JSON.stringify(data) + '\n')
+        const data = (await req.json()) as SensorReading
 
-        return new Response(null, { status: 204 })
+        // HomeKit sends an ISO timestamp with timezone offset
+        // First, convert to UTC
+        const rawTimestamp = new Date(data.timestamp).toISOString()
+        // Then remove fractional seconds (always .000)
+        const timestamp = `${rawTimestamp.split('.')[0]}Z`
+        // Keep in celsius for now
+        const temp_c = parseFloat(data.temp)
+        // Seemingly always an integer, but no need to hardcode that constraint
+        const humidity_rel = parseFloat(data.humidity)
+        // Default location
+        const [{ location_id }] =
+          await sql`SELECT location_id from locations LIMIT 1`
+
+        const record = { location_id, temp_c, humidity_rel, timestamp }
+        // appendFile(SENSOR_DATA_FILE, JSON.stringify(record) + '\n')
+
+        await sql`INSERT INTO readings ${sql(record)}`
+
+        return Response.json({ status: 'success', record })
       },
     },
   },
 })
+
+interface SensorReading {
+  temp: string
+  humidity: string
+  timestamp: string
+}
 
 const checkAuthHeader = (auth: string) =>
   auth === `Bearer ${import.meta.env.SENSOR_PUSH_TOKEN}`

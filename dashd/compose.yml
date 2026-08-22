@@ -13,6 +13,7 @@ services:
       - WYZE2_API_KEY
       - SENSOR_PUSH_TOKEN
       - NO_COLOR=1
+      - DATABASE_URL
     volumes:
       - ./src:/app/src:ro
       - ./data:/mnt/data
