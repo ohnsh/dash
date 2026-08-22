@@ -3,7 +3,8 @@
   "type": "module",
   "scripts": {
     "start": "bun run --port=4100 ./src/index.ts",
-    "dev": "bun run --watch --port=4100 ./src/index.ts"
+    "dev": "bun run --watch --port=4100 ./src/index.ts",
+    "db:last10": "./helpers.sh last10"
   },
   "devDependencies": {
     "@types/bun": "latest"

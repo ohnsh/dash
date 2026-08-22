@@ -177,25 +177,36 @@ Bun.serve({
 
         const data = (await req.json()) as SensorReading
 
-        // HomeKit sends an ISO timestamp with timezone offset
-        // First, convert to UTC
-        const rawTimestamp = new Date(data.timestamp).toISOString()
-        // Then remove fractional seconds (always .000)
-        const timestamp = `${rawTimestamp.split('.')[0]}Z`
-        // Keep in celsius for now
-        const temp_c = parseFloat(data.temp)
-        // Seemingly always an integer, but no need to hardcode that constraint
-        const humidity_rel = parseFloat(data.humidity)
-        // Default location
-        const [{ location_id }] =
-          await sql`SELECT location_id from locations LIMIT 1`
+        console.log('POST /mx/sensor', data)
 
-        const record = { location_id, temp_c, humidity_rel, timestamp }
-        // appendFile(SENSOR_DATA_FILE, JSON.stringify(record) + '\n')
+        try {
+          // HomeKit sends an ISO timestamp with timezone offset
+          // First, convert to UTC
+          const rawTimestamp = new Date(data.timestamp).toISOString()
+          // Then remove fractional seconds (always .000)
+          const timestamp = `${rawTimestamp.split('.')[0]}Z`
+          // Keep in celsius for now
+          const temp_c = parseFloat(data.temp)
+          // Seemingly always an integer, but no need to hardcode that constraint
+          const humidity_rel = parseFloat(data.humidity)
+          // Default location
+          const [{ location_id }] =
+            await sql`SELECT id as location_id from locations WHERE name = ${data.location}`
 
-        await sql`INSERT INTO readings ${sql(record)}`
+          const record = { location_id, temp_c, humidity_rel, timestamp }
+          // appendFile(SENSOR_DATA_FILE, JSON.stringify(record) + '\n')
 
-        return Response.json({ status: 'success', record })
+          await sql`INSERT INTO readings ${sql(record)}`
+
+          return Response.json({ status: 'success', record })
+        } catch (err) {
+          console.error('ERROR /mx/sensor', err)
+
+          return Response.json(
+            { status: 'error' },
+            { status: 500, statusText: 'Internal error' },
+          )
+        }
       },
     },
   },
@@ -205,6 +216,7 @@ interface SensorReading {
   temp: string
   humidity: string
   timestamp: string
+  location: string
 }
 
 const checkAuthHeader = (auth: string) =>
