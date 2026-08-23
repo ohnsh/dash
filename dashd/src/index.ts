@@ -3,7 +3,7 @@ import Bun, { sql } from 'bun'
 import withCORS from './with-cors'
 
 const MMTX_API_URL = import.meta.env.MMTX_API_URL || 'http://localhost:9997/v3'
-const SENSOR_DATA_FILE = '/mnt/data/sensor-data.json'
+// const SENSOR_DATA_FILE = '/mnt/data/sensor-data.json'
 
 const eventStreamMap = new Map<string, ReadableStreamDefaultController>()
 
@@ -26,7 +26,7 @@ Bun.serve({
       return Response.json({ ...resp, realSourceIP, requestIP, sseSubscribers })
     }),
 
-    '/mx/snapshot/:snap': withCORS(async (req, server) => {
+    '/mx/snapshot/:snap': withCORS(async (req) => {
       console.log('snapshot route')
       const { snap } = req.params
       const map = {
@@ -162,7 +162,7 @@ Bun.serve({
       return new Response('thx.')
     },
 
-    '/mx/sensor': {
+    '/sensor': {
       POST: async (req) => {
         const auth = req.headers.get('Authorization')
         if (!auth || !checkAuthHeader(auth)) {
@@ -175,9 +175,7 @@ Bun.serve({
           })
         }
 
-        const data = (await req.json()) as SensorReading
-
-        console.log('POST /mx/sensor', data)
+        const data = (await req.json()) as SensorReadingSubmission
 
         try {
           // HomeKit sends an ISO timestamp with timezone offset
@@ -200,7 +198,7 @@ Bun.serve({
 
           return Response.json({ status: 'success', record })
         } catch (err) {
-          console.error('ERROR /mx/sensor', err)
+          console.error('ERROR /sensor', err)
 
           return Response.json(
             { status: 'error' },
@@ -208,11 +206,99 @@ Bun.serve({
           )
         }
       },
+
+      GET: async (req) => {
+        const searchParams = new URL(req.url).searchParams
+        const loc = searchParams.get('loc')?.trim()
+        const _last = searchParams.get('last')?.trim()
+        const last = _last ? Number(_last) : undefined
+
+        if (Number.isNaN(last)) {
+          return Response.json(
+            { status: 'error', error: "'last' parameter is invalid" },
+            { status: 400 },
+          )
+        }
+
+        if (!loc) {
+          const rows = await orderAndLimit<SensorReading[]>(
+            (order) => sql`SELECT * FROM readings ${order}`,
+            { last },
+          )
+          return Response.json({ status: 'success', result: rows })
+        }
+
+        if (loc.length > 100) {
+          return Response.json(
+            { status: 'error', error: "'loc' parameter is too long" },
+            { status: 400 },
+          )
+        }
+
+        if (/[^\w-]/.test(loc)) {
+          return Response.json(
+            { status: 'error', error: "'loc' parameter is invalid" },
+            { status: 400 },
+          )
+        }
+
+        const rows = await orderAndLimit(locationReadings(loc), { last })
+
+        return Response.json({ status: 'success', result: rows })
+      },
     },
   },
 })
 
+type QueryCallback<T> = (order: Bun.SQL.Query<unknown>) => Bun.SQL.Query<T>
+
+function locationReadings(loc: string): QueryCallback<SensorReading[]> {
+  return (order) => sql`
+    SELECT r.* FROM readings r
+    WHERE r.location_id IN (
+      SELECT l.id
+      FROM locations l
+      WHERE l.name = ${loc}
+    )
+    ${order}
+  `
+}
+
+interface OrderLimitOpts {
+  last?: number | undefined
+  sortKey?: string
+}
+
+function orderAndLimit<T>(
+  qcb: QueryCallback<T>,
+  opts: OrderLimitOpts = {},
+): Bun.SQL.Query<T> {
+  const { last, sortKey = 'timestamp' } = opts
+
+  if (!last) {
+    return qcb(sql`ORDER BY ${sql(sortKey)} ASC`)
+  }
+
+  const innerQuery = qcb(sql`ORDER BY ${sql(sortKey)} DESC LIMIT ${last}`)
+
+  return sql`
+    WITH inner_query AS (
+      ${innerQuery}
+    )
+    SELECT * FROM inner_query
+    ORDER BY ${sql(sortKey)} ASC
+  `
+}
+
 interface SensorReading {
+  id: number
+  location_id: number
+  timestamp: string
+  temp_c: number
+  humidity_rel: number
+}
+
+interface SensorReadingSubmission {
   temp: string
   humidity: string
   timestamp: string
