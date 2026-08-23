@@ -10,6 +10,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import type { Formatter } from 'recharts/types/component/DefaultTooltipContent'
 
 interface DataPoint {
   timestamp: string

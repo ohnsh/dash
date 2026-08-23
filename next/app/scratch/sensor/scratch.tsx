@@ -1,18 +1,14 @@
-import React, { useMemo } from 'react'
-import {
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { useMemo } from 'react'
+import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 
+interface RawData {
+  timestamp: string
+}
 // compute numeric ticks up-front
 // make sure midnight is included
 // (because they're numeric, they don't have to exactly match a data point)
 // separately, in tickFormatter, format midnight ticks as date instead of time
-export const FlexibleTimeChart = ({ rawData }) => {
+export const FlexibleTimeChart = ({ rawData }: { rawData: RawData[] }) => {
   // 1. Transform raw timestamp strings into Unix numbers
   const chartData = useMemo(() => {
     return rawData.map((item) => ({
