@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import {
-  CartesianGrid,
+  // CartesianGrid,
   Legend,
   Line,
   LineChart,
@@ -94,9 +94,9 @@ export default function SensorChart({
           left: 0,
         }}
       >
-        <CartesianGrid stroke="#aaa" strokeDasharray="2 5" />
+        {/*<CartesianGrid stroke="#aaa" strokeDasharray="2 5" />*/}
         <Line
-          type="monotone"
+          type="basis" // "monotone"
           yAxisId="left"
           dot={false}
           // dot={{ r: 1.5 }}
@@ -116,6 +116,7 @@ export default function SensorChart({
         />
         <XAxis
           dataKey="timestamp"
+          type="auto" // "number" with Unix timestamps and formatter
           tickFormatter={(isoStamp) =>
             new Date(isoStamp).toLocaleString(undefined, {
               month: 'numeric',
@@ -160,12 +161,7 @@ export default function SensorChart({
             background: 'none',
             backdropFilter: 'brightness(45%) blur(2px)',
           }}
-          formatter={(value, name) => {
-            if (!value || typeof name !== 'string') {
-              return [value, name]
-            }
-            return formatter(value.toString(), name)
-          }}
+          formatter={tooltipFormatter}
           labelFormatter={(label) =>
             typeof label !== 'string'
               ? label
@@ -183,7 +179,10 @@ export default function SensorChart({
   )
 }
 
-function formatter(value: string, name: string): [value: string, name: string] {
+const tooltipFormatter: Formatter = (value, name) => {
+  if (!value || typeof name !== 'string') {
+    return [value, name]
+  }
   const match = name.match(/^(.+) \(([^)]+)\)$/)
   if (!match) {
     return [value, name]
