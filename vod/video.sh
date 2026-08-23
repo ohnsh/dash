@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-script_dir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
-script_name=$(basename "$0")
+SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
+SCRIPT_NAME=$(basename "$0")
 
 # wrappers ensure credentials from .env are available regardless of how or where the
 # commands are invoked. Considering a single wrapper that uses $0 to detect what to exec
-video_ts=$script_dir/videots_wrapper.sh
-rclone=$script_dir/rclone_v.sh
+video_ts=$SCRIPT_DIR/videots_wrapper.sh
+rclone=$SCRIPT_DIR/rclone_v.sh
 
 marker=.video.sh_inprogress
 
@@ -18,24 +18,26 @@ MIN_MB=${MIN_MB:-3}
 MIN_VID_SIZE=${MIN_VID_SIZE:-$((MIN_MB * ONE_MB))}
 
 usage() { cat; } <<EOF
-Usage: $script_name <subcommand> [-n COUNT] DIR
+Usage: $SCRIPT_NAME <subcommand> DIR
 
 Available Subcommands:
     vod     Remux fragmented mp4s, generate assets (thumbnails), and sync to R2.
-    watch   Watch a directory where video files are saved, running \`$script_name vod\`
+    watch   Watch a directory where video files are saved, running \`$SCRIPT_NAME vod\`
             periodically.
     link    Link a directory of archived videos to a workspace with the folder structure
-            expected by \`$script_name vod\`.
+            expected by \`$SCRIPT_NAME vod\`.
 
 Options:
-    -n COUNT  Limit directory processing to first n files (for testing).
     -h        Show this help message.
+
+Environment:
+    COUNT   Limit directory processing to first \$COUNT files (for testing).
 
 EOF
 
 log() {
   printf "[%s %s] %s\n" \
-    "${script_name:-$0}" \
+    "${SCRIPT_NAME:-$0}" \
     "$(date +"%m-%d %T")" \
     "$*" >&2
 }
@@ -156,7 +158,7 @@ process_camdir() {
   local videos=(_raw/*.mp4)
 
   # count used to limit scope when testing
-  count=${count:-${#videos[@]}}
+  local count=${COUNT:-${#videos[@]}}
   local bn
 
   touch "$marker"
@@ -278,7 +280,7 @@ watch() {
       log_notify "Error exit status from process_camdir...canceling watch."
       # Would be interesting to look into process management options.
       # For now, it's no big deal if I need to babysit the script a bit.
-      return $?
+      return $status
     fi
     # For now, prioritize simplicity and portability.
     # FS watching will differ between macOS, Alpine, and Debian.
@@ -334,11 +336,6 @@ link_dir() {
   log "$refdir linked to $workdir/_raw"
   log "run 'cd $workdir && $0 vod .'"
 }
-
-if [[ $1 == '-n' ]]; then
-  count=$2
-  shift 2
-fi
 
 if [[ $1 == '-h' ]]; then
   usage
