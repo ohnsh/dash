@@ -79,7 +79,12 @@ export default function SensorChart({
     <div>
       {title && <h3>{title}</h3>}
       <LineChart
-        style={{ width: '100%', aspectRatio: 1.618, maxWidth: 800 }}
+        style={{
+          width: '100%',
+          aspectRatio: 1.8,
+          maxWidth: 800,
+          fontSize: 'var(--text-sm)',
+        }}
         responsive
         data={txData}
         margin={{
@@ -123,23 +128,31 @@ export default function SensorChart({
           width="auto"
           yAxisId="left"
           // ticks=[76.0, 76.1, ...]
-          // tickFormatter={(v) => v.toFixed(1)} // introduces rounding error
+          // tickFormatter={(v) => v.toLocaleString()} // introduces rounding error
+          // domain={['dataMin - 0.3', 'dataMax + 0.3']}
+          // below values seem to fix most axis issues
+          niceTicks="snap125" // "snap125" is also pretty reliable, tends to result in whole numbers
+          domain={['auto', 'auto']}
           orientation="left"
           stroke="var(--color-accent)"
-          domain={['dataMin - 0.25', 'dataMax + 0.25']}
-          label={{
-            value: 'Temperature (°F)',
-            position: 'insideLeft',
-            angle: -90,
-          }}
+          // label={{
+          //   value: 'Temperature (°F)',
+          //   position: 'insideLeft',
+          //   angle: -90,
+          // }}
         />
         <YAxis
           width="auto"
           yAxisId="right"
+          niceTicks="snap125"
+          domain={['auto', 'auto']}
           orientation="right"
           stroke="hsl(from var(--color-accent) calc(h + 180) s l)"
-          domain={['dataMin - 0.25', 'dataMax + 0.25']}
-          label={{ value: 'Humidity (%)', position: 'insideRight', angle: -90 }}
+          // label={{
+          //   value: 'Humidity (%)',
+          //   position: 'insideRight',
+          //   angle: 90,
+          // }}
         />
         <Tooltip
           contentStyle={{
@@ -164,7 +177,7 @@ export default function SensorChart({
                 })
           }
         />
-        <Legend align="right" />
+        <Legend position="bottom" />
       </LineChart>
     </div>
   )
