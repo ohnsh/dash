@@ -19,7 +19,13 @@ interface DataPoint {
 
 const ctof = (c: number) => Number((32 + (c * 9) / 5).toFixed(1))
 
-export default function SensorChart({ location }: { location?: string }) {
+export default function SensorChart({
+  location,
+  title,
+}: {
+  location?: string
+  title?: string
+}) {
   const [data, setData] = useState<DataPoint[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -41,9 +47,16 @@ export default function SensorChart({ location }: { location?: string }) {
           setData(result.result)
         }
       })
+      .catch((err) => {
+        // explicit abort is not an error
+        if (err?.name === 'AbortError') {
+          return
+        }
+        throw err
+      })
 
     return () => {
-      controller.abort('Effect clean-up')
+      controller.abort()
     }
   }, [location])
 
@@ -63,89 +76,105 @@ export default function SensorChart({ location }: { location?: string }) {
   }
 
   return (
-    <LineChart
-      style={{ width: '100%', aspectRatio: 1.618, maxWidth: 800 }}
-      responsive
-      data={txData}
-      margin={{
-        top: 20,
-        right: 20,
-        bottom: 5,
-        left: 0,
-      }}
-    >
-      <CartesianGrid stroke="#aaa" strokeDasharray="2 5" />
-      <Line
-        type="monotone"
-        yAxisId="left"
-        dot={false}
-        // dot={{ r: 1.5 }}
-        dataKey="temp_f"
-        stroke="var(--color-accent)"
-        strokeWidth={2}
-        name="HomePod temperature sensor"
-      />
-      <Line
-        type="basis"
-        yAxisId="right"
-        dot={false}
-        dataKey="humidity_rel"
-        stroke="hsl(from var(--color-accent) 0deg s l)"
-        strokeWidth={2}
-        name="HomePod humidity sensor"
-      />
-      <XAxis
-        dataKey="timestamp"
-        tickFormatter={(isoStamp) =>
-          new Date(isoStamp).toLocaleString(undefined, {
-            month: 'numeric',
-            day: 'numeric',
-            hour: 'numeric',
-          })
-        }
-      />
-      <YAxis
-        width="auto"
-        yAxisId="left"
-        orientation="left"
-        stroke="var(--color-accent)"
-        domain={['dataMin - 0.25', 'dataMax + 0.25']}
-        label={{
-          value: 'Temperature (°F)',
-          position: 'insideLeft',
-          angle: -90,
+    <div>
+      {title && <h3>{title}</h3>}
+      <LineChart
+        style={{ width: '100%', aspectRatio: 1.618, maxWidth: 800 }}
+        responsive
+        data={txData}
+        margin={{
+          top: 20,
+          right: 20,
+          bottom: 5,
+          left: 0,
         }}
-      />
-      <YAxis
-        width="auto"
-        yAxisId="right"
-        orientation="right"
-        stroke="hsl(from var(--color-accent) 0deg s l)"
-        domain={['dataMin - 0.25', 'dataMax + 0.25']}
-        label={{ value: 'Humidity (%)', position: 'insideRight', angle: -90 }}
-      />
-      <Tooltip
-        contentStyle={{
-          borderRadius: '5px',
-          background: 'none',
-          backdropFilter: 'brightness(45%) blur(2px)',
-        }}
-        formatter={(value, name) => [
-          `${value} ${typeof name === 'string' && name.includes('temp') ? '°F' : '%'}`,
-          name,
-        ]}
-        labelFormatter={(label) =>
-          typeof label !== 'string'
-            ? label
-            : new Date(label).toLocaleString(undefined, {
-                month: 'numeric',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: 'numeric',
-              })
-        }
-      />
-      <Legend align="right" />
-    </LineChart>
+      >
+        <CartesianGrid stroke="#aaa" strokeDasharray="2 5" />
+        <Line
+          type="monotone"
+          yAxisId="left"
+          dot={false}
+          // dot={{ r: 1.5 }}
+          dataKey="temp_f"
+          stroke="var(--color-accent)"
+          strokeWidth={2}
+          name="Temperature (°F)"
+        />
+        <Line
+          type="basis"
+          yAxisId="right"
+          dot={false}
+          dataKey="humidity_rel"
+          stroke="hsl(from var(--color-accent) calc(h + 180) s l)"
+          strokeWidth={2}
+          name="Relative Humidity (%)"
+        />
+        <XAxis
+          dataKey="timestamp"
+          tickFormatter={(isoStamp) =>
+            new Date(isoStamp).toLocaleString(undefined, {
+              month: 'numeric',
+              day: 'numeric',
+              hour: 'numeric',
+            })
+          }
+        />
+        <YAxis
+          width="auto"
+          yAxisId="left"
+          // ticks=[76.0, 76.1, ...]
+          // tickFormatter={(v) => v.toFixed(1)} // introduces rounding error
+          orientation="left"
+          stroke="var(--color-accent)"
+          domain={['dataMin - 0.25', 'dataMax + 0.25']}
+          label={{
+            value: 'Temperature (°F)',
+            position: 'insideLeft',
+            angle: -90,
+          }}
+        />
+        <YAxis
+          width="auto"
+          yAxisId="right"
+          orientation="right"
+          stroke="hsl(from var(--color-accent) calc(h + 180) s l)"
+          domain={['dataMin - 0.25', 'dataMax + 0.25']}
+          label={{ value: 'Humidity (%)', position: 'insideRight', angle: -90 }}
+        />
+        <Tooltip
+          contentStyle={{
+            borderRadius: '5px',
+            background: 'none',
+            backdropFilter: 'brightness(45%) blur(2px)',
+          }}
+          formatter={(value, name) => {
+            if (!value || typeof name !== 'string') {
+              return [value, name]
+            }
+            return formatter(value.toString(), name)
+          }}
+          labelFormatter={(label) =>
+            typeof label !== 'string'
+              ? label
+              : new Date(label).toLocaleString(undefined, {
+                  month: 'numeric',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: 'numeric',
+                })
+          }
+        />
+        <Legend align="right" />
+      </LineChart>
+    </div>
   )
+}
+
+function formatter(value: string, name: string): [value: string, name: string] {
+  const match = name.match(/^(.+) \(([^)]+)\)$/)
+  if (!match) {
+    return [value, name]
+  }
+  const [, label, unit] = match
+  return [`${value} ${unit}`, label]
 }
