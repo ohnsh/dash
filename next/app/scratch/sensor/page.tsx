@@ -21,7 +21,7 @@ export default function Page() {
         />
       </section>
 
-      {/* works but mostly a curiosity */}
+      <h2>Fetched on Client (duplicated during SSR)</h2>
       <section>
         <Suspense fallback={`Loading...`}>
           <SensorChartPromise
@@ -37,7 +37,7 @@ export default function Page() {
         </Suspense>
       </section>
 
-      <h2>Fetched on Client</h2>
+      <h2>Fetched on Client in Effect</h2>
       <section>
         <SensorChartEffect
           location="encore_main"

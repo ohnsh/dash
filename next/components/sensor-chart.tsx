@@ -78,7 +78,7 @@ function getSensorData(url: string) {
 }
 
 export function SensorChartPromise({
-  promise: externalPromise,
+  promise,
   url,
   title,
 }: {
@@ -86,21 +86,15 @@ export function SensorChartPromise({
   url?: string
   title: string
 }) {
-  const promise = useMemo<Promise<SensorResponse> | null>(() => {
-    if (externalPromise) return externalPromise
-    if (typeof window === 'undefined' || !url) return null
-    return getSensorData(url)
-  }, [externalPromise, url])
+  // Still not sure what's the best way to create a client-only promise. `use(browser())`
+  // looks promising (suspends on the server without awaiting or resuming, and without
+  // causing a hydration mismatch when the client bypasses it and renders)
 
-  // mysteriously works without a hydration mismatch, perhaps because the mismatch is at
-  // the SVG level.
-  //
-  // Nevertheless, I'm fairly certain that React.use is not designed to work with
-  // client-only promises. They belong in effects. Perhaps when `use(browser())` is
-  // available, this sort of thing will be better supported. (suspends on the server
-  // without awaiting or resuming, and without causing a hydration mismatch when the
-  // client bypasses it and renders)
-  const data = promise ? use(promise).result : use(Promise.resolve([]))
+  const data = promise
+    ? use(promise).result
+    : url
+      ? use(getSensorData(url)).result
+      : []
 
   return <SensorChart {...{ title, data }} />
 }
@@ -190,7 +184,7 @@ export function SensorChart({
           width="auto"
           yAxisId="right"
           niceTicks="snap125"
-          domain={['auto', 'auto']}
+          domain={['dataMin - 1', 'dataMax + 1']}
           orientation="right"
           stroke="hsl(from var(--color-accent) calc(h + 180) s l)"
           // label={{
