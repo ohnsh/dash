@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { cache, use, useEffect, useMemo, useState } from 'react'
 import {
   // CartesianGrid,
   Legend,
@@ -11,16 +11,11 @@ import {
   YAxis,
 } from 'recharts'
 import type { Formatter } from 'recharts/types/component/DefaultTooltipContent'
-
-interface DataPoint {
-  timestamp: string
-  temp_c: number
-  humidity_rel: number
-}
+import type { DataPoint, SensorResponse } from './schema'
 
 const ctof = (c: number) => Number((32 + (c * 9) / 5).toFixed(1))
 
-export default function SensorChart({
+export function SensorChartEffect({
   location,
   title,
 }: {
@@ -61,13 +56,6 @@ export default function SensorChart({
     }
   }, [location])
 
-  const txData = useMemo(() => {
-    if (!data) {
-      return []
-    }
-    return data.map((point) => ({ ...point, temp_f: ctof(point.temp_c) }))
-  }, [data])
-
   if (error) {
     return `Error: ${error}`
   }
@@ -75,6 +63,60 @@ export default function SensorChart({
   if (!data) {
     return 'Loading...'
   }
+
+  return <SensorChart {...{ title, data }} />
+}
+
+const fetchCache = new Map<string, Promise<SensorResponse>>()
+
+function getSensorData(url: string) {
+  let promise = fetchCache.get(url)
+  if (promise) return promise
+  promise = fetch(url).then<SensorResponse>((r) => r.json())
+  fetchCache.set(url, promise)
+  return promise
+}
+
+export function SensorChartPromise({
+  promise: externalPromise,
+  url,
+  title,
+}: {
+  promise?: Promise<SensorResponse>
+  url?: string
+  title: string
+}) {
+  const promise = useMemo<Promise<SensorResponse> | null>(() => {
+    if (externalPromise) return externalPromise
+    if (typeof window === 'undefined' || !url) return null
+    return getSensorData(url)
+  }, [externalPromise, url])
+
+  // if (!promise) {
+  //   return 'Loading...'
+  // }
+
+  const data = use(promise ?? Promise.resolve({} as SensorResponse)).result
+
+  // always runs on client, which is interesting
+  // console.log(typeof window)
+
+  return <SensorChart {...{ title, data }} />
+}
+
+export function SensorChart({
+  data,
+  title,
+}: {
+  data: DataPoint[]
+  title?: string
+}) {
+  const txData = useMemo(() => {
+    if (!data) {
+      return []
+    }
+    return data.map((point) => ({ ...point, temp_f: ctof(point.temp_c) }))
+  }, [data])
 
   return (
     <div>

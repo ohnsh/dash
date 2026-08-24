@@ -1,5 +1,19 @@
 .container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(365px, 1fr));
-  gap: 1rem;
+  section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(365px, 1fr));
+    gap: 1rem;
+  }
+
+  h3 {
+    text-align: center;
+  }
+
+  h2 {
+    margin-block: 3rem 1rem;
+
+    &:first-of-type {
+      margin-block-start: 0;
+    }
+  }
 }
