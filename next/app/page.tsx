@@ -1,5 +1,6 @@
 import { getSpeechTotal } from '@dash/vod/util'
 import { desc, gte } from 'drizzle-orm'
+import { revalidatePath } from 'next/cache'
 import { Suspense } from 'react'
 import { SensorChartPromise } from '@/components/sensor-chart'
 import VODView from '@/components/vod-view'
@@ -38,7 +39,18 @@ export default async function Home({ searchParams }: PageProps<'/'>) {
   if (!v) {
     return (
       <div className={css.container}>
-        <h2>Recharts Demo 📡</h2>
+        <div className={css.headerBar}>
+          <h2>Recharts Demo 📡</h2>
+          <button
+            type="button"
+            onClick={async () => {
+              'use server'
+              revalidatePath('/')
+            }}
+          >
+            Revalidate
+          </button>
+        </div>
         <p>
           Using live data from my apartment (
           <a
@@ -46,7 +58,7 @@ export default async function Home({ searchParams }: PageProps<'/'>) {
             target="_blank"
             rel="noopener"
           >
-            view server source
+            server source
           </a>
           ).
         </p>
@@ -54,13 +66,13 @@ export default async function Home({ searchParams }: PageProps<'/'>) {
           <Suspense fallback={`Loading chart...`}>
             <SensorChartPromise
               promise={getSensorData('encore_main')}
-              title="Apartment (main HomePod)"
+              title="Main HomePod"
             />
           </Suspense>
           <Suspense fallback={`Loading chart...`}>
             <SensorChartPromise
               promise={getSensorData('encore_bedroom')}
-              title="Apartment (bedroom HomePod)"
+              title="Bedroom HomePod"
             />
           </Suspense>
         </section>

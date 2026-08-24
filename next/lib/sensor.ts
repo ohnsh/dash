@@ -5,6 +5,7 @@ export const SENSOR_URL = 'https://d.ohn.sh/sensor'
 export const sensorDataUrl = (loc: string) => {
   const url = new URL(SENSOR_URL)
   url.searchParams.set('loc', loc)
+  url.searchParams.set('last', '96')
   return url.href
 }
 
