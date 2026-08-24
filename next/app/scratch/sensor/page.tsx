@@ -1,43 +1,41 @@
-import { unstable_cache } from 'next/cache'
+import { Suspense } from 'react'
+import {
+  SensorChartEffect,
+  SensorChartPromise,
+} from '@/components/sensor-chart'
+import { getSensorData, sensorDataUrl } from '@/lib/sensor'
 import css from './page.module.css'
-import { SensorChartEffect, SensorChartPromise } from './sensor-chart'
-
-const SENSOR_URL = 'https://d.ohn.sh/sensor'
-
-const getSensorData = unstable_cache(
-  (url: string) => fetch(url).then((r) => r.json()),
-  undefined,
-  { revalidate: 3600 }, // 60 min
-)
 
 export default function Page() {
-  const mainUrl = new URL(SENSOR_URL)
-  mainUrl.searchParams.set('loc', 'encore_main')
-
-  const bedroomUrl = new URL(SENSOR_URL)
-  bedroomUrl.searchParams.set('loc', 'encore_bedroom')
-
   return (
     <div className={css.container}>
       <h2>Fetched on Server (revalidate: 60 min)</h2>
       <section>
         <SensorChartPromise
-          promise={getSensorData(mainUrl.href)}
+          promise={getSensorData('encore_main')}
           title="Apartment (main HomePod)"
         />
         <SensorChartPromise
-          promise={getSensorData(bedroomUrl.href)}
+          promise={getSensorData('encore_bedroom')}
           title="Apartment (bedroom HomePod)"
         />
       </section>
 
-      {/* works but mostly a curiosity
-      <SensorChartPromise url={mainUrl.href} title="Apartment (main HomePod)" />
-      <SensorChartPromise
-        url={bedroomUrl.href}
-        title="Apartment (bedroom HomePod)"
-      />
-    */}
+      {/* works but mostly a curiosity */}
+      <section>
+        <Suspense fallback={`Loading...`}>
+          <SensorChartPromise
+            url={sensorDataUrl('encore_main')}
+            title="Apartment (main HomePod)"
+          />
+        </Suspense>
+        <Suspense fallback={`Loading...`}>
+          <SensorChartPromise
+            url={sensorDataUrl('encore_bedroom')}
+            title="Apartment (bedroom HomePod)"
+          />
+        </Suspense>
+      </section>
 
       <h2>Fetched on Client</h2>
       <section>

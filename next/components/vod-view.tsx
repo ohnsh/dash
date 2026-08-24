@@ -10,11 +10,13 @@ export default async function VODView({
   vKey,
   filter,
   date,
+  headless = false,
 }: {
   rows: InventoryRecord[]
   vKey: string | undefined
   filter?: (vids: DashVideo[]) => DashVideo[]
   date?: string
+  headless?: boolean
 }) {
   const inventories = rows.map((row) => ({
     ...row,
@@ -54,7 +56,7 @@ export default async function VODView({
           <VODPlayer videoPromise={videoPromise} />
         </Suspense>
       ) : (
-        <VODPlayer />
+        !headless && <VODPlayer />
       )}
       <div>
         {inventories.map((inv) => (

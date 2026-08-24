@@ -11,7 +11,7 @@ import {
   YAxis,
 } from 'recharts'
 import type { Formatter } from 'recharts/types/component/DefaultTooltipContent'
-import type { DataPoint, SensorResponse } from './schema'
+import type { DataPoint, SensorResponse } from '@/lib/sensor'
 
 const ctof = (c: number) => Number((32 + (c * 9) / 5).toFixed(1))
 
@@ -92,14 +92,15 @@ export function SensorChartPromise({
     return getSensorData(url)
   }, [externalPromise, url])
 
-  // if (!promise) {
-  //   return 'Loading...'
-  // }
-
-  const data = use(promise ?? Promise.resolve({} as SensorResponse)).result
-
-  // always runs on client, which is interesting
-  // console.log(typeof window)
+  // mysteriously works without a hydration mismatch, perhaps because the mismatch is at
+  // the SVG level.
+  //
+  // Nevertheless, I'm fairly certain that React.use is not designed to work with
+  // client-only promises. They belong in effects. Perhaps when `use(browser())` is
+  // available, this sort of thing will be better supported. (suspends on the server
+  // without awaiting or resuming, and without causing a hydration mismatch when the
+  // client bypasses it and renders)
+  const data = promise ? use(promise).result : use(Promise.resolve([]))
 
   return <SensorChart {...{ title, data }} />
 }
@@ -108,7 +109,7 @@ export function SensorChart({
   data,
   title,
 }: {
-  data: DataPoint[]
+  data: DataPoint[] | undefined
   title?: string
 }) {
   const txData = useMemo(() => {
