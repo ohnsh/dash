@@ -207,7 +207,7 @@ Bun.serve({
         }
       },
 
-      GET: async (req) => {
+      GET: withCORS(async (req) => {
         const searchParams = new URL(req.url).searchParams
         const loc = searchParams.get('loc')?.trim()
         const _last = searchParams.get('last')?.trim()
@@ -245,7 +245,7 @@ Bun.serve({
         const rows = await orderAndLimit(locationReadings(loc), { last })
 
         return Response.json({ status: 'success', result: rows })
-      },
+      }),
     },
   },
 })
