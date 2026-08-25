@@ -28,7 +28,7 @@ body {
   color: var(--foreground);
 }
 
-a {
+a:not(:has(svg)) {
   color: var(--color-accent);
   text-decoration: underline;
 }
