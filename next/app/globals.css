@@ -23,28 +23,31 @@
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-}
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+  }
 
-a:not(:has(svg)) {
-  color: var(--color-accent);
-  text-decoration: underline;
-}
+  a:not(:has(svg)) {
+    color: var(--color-accent);
+    text-decoration: underline;
+  }
 
-ul {
-  list-style: disc;
-  padding-inline: 1.5rem;
-  margin-inline: 0;
-}
+  ul {
+    list-style: disc;
+    padding-inline: 1.5rem;
+    margin-inline: 0;
+  }
 
-h2 {
-  font-weight: bold;
-  font-size: var(--text-lg);
-}
+  h2 {
+    font-weight: bold;
+    font-size: var(--text-lg);
+    font-family: var(--font-mono);
+  }
 
-h3 {
-  font-weight: bold;
-  font-size: var(--text-md);
+  h3 {
+    font-weight: bold;
+    font-size: var(--text-md);
+  }
 }
