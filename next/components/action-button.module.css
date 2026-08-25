@@ -1,0 +1,15 @@
+.actionButton {
+  display: flex;
+  gap: .4rem;
+  align-items: center;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  border: solid 1px;
+  color: hsl(from var(--foreground) h s l / .7);
+  padding: .2em .5em;
+  font-weight: 500;
+
+  &:hover {
+    color: var(--foreground);
+  }
+}

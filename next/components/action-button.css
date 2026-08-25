@@ -1,0 +1,15 @@
+  button {
+    cursor: pointer;
+    margin-right: 1rem;
+    border-radius: var(--radius-md);
+    border: solid 1px;
+    color: hsl(from var(--foreground) h s l / .5);
+    padding: .2rem .5rem;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    justify-self: center;
+
+    &:hover {
+      color: var(--foreground);
+    }
+  }

@@ -1,4 +1,6 @@
+import { revalidatePath } from 'next/cache'
 import { Suspense } from 'react'
+import ActionButton from '@/components/action-button'
 import {
   SensorChartEffect,
   SensorChartPromise,
@@ -20,6 +22,14 @@ export default function Page() {
           title="Apartment (bedroom HomePod)"
         />
       </section>
+      <ActionButton
+        action={async () => {
+          'use server'
+          revalidatePath('/scratch/sensor')
+        }}
+      >
+        Revalidate
+      </ActionButton>
 
       <h2>Fetched on Client (duplicated during SSR)</h2>
       <section>
