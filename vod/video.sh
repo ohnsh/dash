@@ -318,7 +318,7 @@ link_dir() {
   }
 
   local workdir
-  workdir=$(dirname "$refdir")/${refdir}_vod
+  workdir=$(dirname "$refdir")/$(basename "$refdir")_vod
   mkdir -p "$workdir/_raw"
 
   # local link_base=../../$(basename "$refdir")
