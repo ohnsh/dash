@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache'
+import { cacheLife } from 'next/cache'
 
 export const SENSOR_URL = 'https://d.ohn.sh/sensor'
 
@@ -9,12 +9,12 @@ export const sensorDataUrl = (loc: string) => {
   return url.href
 }
 
-export const getSensorData = unstable_cache(
-  (loc: string) =>
-    fetch(sensorDataUrl(loc)).then<SensorResponse>((r) => r.json()),
-  undefined,
-  { revalidate: 3600 }, // 60 min
-)
+export const getSensorData = async (loc: string) => {
+  'use cache'
+  cacheLife('minutes')
+
+  return fetch(sensorDataUrl(loc)).then<SensorResponse>((r) => r.json())
+}
 
 export interface DataPoint {
   timestamp: string

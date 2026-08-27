@@ -69,13 +69,9 @@ export function SensorChartEffect({
 
 const fetchCache = new Map<string, Promise<SensorResponse>>()
 
-async function getSensorData(url: string) {
+function getSensorData(url: string) {
   let promise = fetchCache.get(url)
-  if (promise) {
-    console.log('got it')
-    return promise
-  }
-  console.log("didn't have it")
+  if (promise) return promise
   promise = fetch(url)
     .then<SensorResponse>((r) => r.json())
     .catch(() => ({ status: 'error', result: [] }))
@@ -102,7 +98,6 @@ export function SensorChartPromise({
       ? use(getSensorData(url))?.result
       : []
 
-  console.log(`rendering ${promise}`)
   return <SensorChart {...{ title, data }} />
 }
 
