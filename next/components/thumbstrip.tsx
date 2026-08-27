@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { use, useEffect, useRef } from 'react'
 import { type DashVideo, MIN_CONFIDENCE } from '@/lib/dash-video'
-import { InventoryRecord } from '@/lib/turso'
+import type { InventoryRecord } from '@/lib/turso'
 import {
   clientParamsToKey,
   dateInPathname,

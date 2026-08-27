@@ -1,27 +1,48 @@
+import { getSpeechTotal } from '@dash/vod/util'
 import { Suspense } from 'react'
 import ThumbStrip from '@/components/thumbstrip'
 import VODPlayer from '@/components/vod-player'
-import { type DashVideo, fetchInventory, invPathToData } from '@/lib/dash-video'
+import {
+  type DashVideo,
+  fetchInventory,
+  invPathToData,
+  MIN_CONFIDENCE,
+} from '@/lib/dash-video'
+import { getInventories } from '@/lib/query'
 import type { InventoryRecord } from '@/lib/turso'
 import { keyToFullKey, keyToSrc, tsToString } from '@/lib/vod-new'
 
+// minimum speech duration for inventory to be included
+const MIN_SPEECH_INV_S = 10
+// minimum speech duration for individual video to be included
+const MIN_SPEECH_S = 5
+
 export default async function VODView({
-  rows,
   vKey,
-  filter,
   date,
+  onlySpeech = false,
   headless = false,
 }: {
-  rows: InventoryRecord[]
   vKey: string | undefined
-  filter?: (vids: DashVideo[]) => DashVideo[]
   date?: string
+  onlySpeech?: boolean
   headless?: boolean
 }) {
+  const rows = await getInventories({
+    minSpeech: onlySpeech ? MIN_SPEECH_INV_S : undefined,
+    date,
+  })
+  const speechFilter = (vids: DashVideo[]) =>
+    vids.filter(
+      (v) =>
+        v.tags ||
+        getSpeechTotal(v.voiceSegments, { minConfidence: MIN_CONFIDENCE }) >=
+          MIN_SPEECH_S,
+    )
   const inventories = rows.map((row) => ({
     ...row,
     videosPromise: fetchInventory(row.inventoryPath).then(
-      filter ? filter : (vids) => vids,
+      onlySpeech ? speechFilter : (vids) => vids,
     ),
   }))
 
@@ -60,14 +81,15 @@ export default async function VODView({
       )}
       <div>
         {inventories.map((inv) => (
-          <ThumbStrip
-            key={inv.inventoryPath}
-            // including the record is a hack to preserve client-side filtering.
-            record={inv}
-            videosPromise={inv.videosPromise}
-            title={getTitle(inv)}
-            tail
-          />
+          <Suspense key={inv.inventoryPath} fallback={`Loading ...`}>
+            <ThumbStrip
+              // including the record is a hack to preserve client-side filtering.
+              record={inv}
+              videosPromise={inv.videosPromise}
+              title={getTitle(inv)}
+              tail
+            />
+          </Suspense>
         ))}
       </div>
     </article>

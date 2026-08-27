@@ -13,14 +13,18 @@ export default function Page() {
     <div className={css.container}>
       <h2>Fetched on Server (revalidate: 60 min)</h2>
       <section>
-        <SensorChartPromise
-          promise={getSensorData('encore_main')}
-          title="Apartment (main HomePod)"
-        />
-        <SensorChartPromise
-          promise={getSensorData('encore_bedroom')}
-          title="Apartment (bedroom HomePod)"
-        />
+        <Suspense fallback={`Loading...`}>
+          <SensorChartPromise
+            promise={getSensorData('encore_main')}
+            title="Apartment (main HomePod)"
+          />
+        </Suspense>
+        <Suspense fallback={`Loading...`}>
+          <SensorChartPromise
+            promise={getSensorData('encore_bedroom')}
+            title="Apartment (bedroom HomePod)"
+          />
+        </Suspense>
       </section>
       <ActionButton
         action={async () => {

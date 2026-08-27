@@ -3,18 +3,11 @@ import type { NextConfig } from 'next'
 
 //
 const nextConfig: NextConfig = {
+  cacheComponents: true,
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   allowedDevOrigins: ['mak.local'],
   experimental: {
     useTypeScriptCli: true,
-  },
-  async rewrites() {
-    return [
-      {
-        source: '/',
-        destination: '/live',
-      },
-    ]
   },
 }
 

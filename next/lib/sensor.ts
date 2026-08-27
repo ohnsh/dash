@@ -23,6 +23,6 @@ export interface DataPoint {
 }
 
 export interface SensorResponse {
-  status: 'success'
+  status: 'success' | 'error'
   result: DataPoint[]
 }

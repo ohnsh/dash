@@ -1,45 +1,31 @@
-import { getSpeechTotal } from '@dash/vod/util'
-import { desc, gte } from 'drizzle-orm'
 import VODView from '@/components/vod-view'
-import { type DashVideo, MIN_CONFIDENCE } from '@/lib/dash-video'
-import { db, invs } from '@/lib/turso'
 import ChartDemo from './chart-demo'
 
-// minimum speech duration for inventory to be included
-const MIN_SPEECH_INV_S = 10
-// minimum speech duration for individual video to be included
-const MIN_SPEECH_S = 5
-const NUM_INVS = 10
+// making this fancy so the caller's code is the same except for wrapping searchParams
+// access in a function call.
+function singlify<T extends string>(
+  params: Record<string, string | string[] | undefined>,
+  ...keys: T[]
+) {
+  const result = {} as { [K in T]: string | undefined }
+  for (const key of keys) {
+    const { [key]: val } = params
+    result[key] = Array.isArray(val) ? val[0] : val
+  }
+  return result
+}
 
 export default async function Home({ searchParams }: PageProps<'/'>) {
-  let { v } = await searchParams
-  if (Array.isArray(v)) {
-    v = v[0]
-  }
-
-  const rows = await db
-    .select()
-    .from(invs)
-    .where(gte(invs.speechTotal, MIN_SPEECH_INV_S))
-    .limit(NUM_INVS)
-    .orderBy(desc(invs.date))
-
-  const filter = (vids: DashVideo[]) =>
-    vids.filter(
-      (v) =>
-        v.tags ||
-        getSpeechTotal(v.voiceSegments, { minConfidence: MIN_CONFIDENCE }) >=
-          MIN_SPEECH_S,
-    )
+  const { v } = singlify(await searchParams, 'v')
 
   if (!v) {
     return (
       <>
         <ChartDemo />
-        <VODView rows={rows} vKey={v} filter={filter} headless />
+        <VODView vKey={v} onlySpeech headless />
       </>
     )
   }
 
-  return <VODView rows={rows} vKey={v} filter={filter} />
+  return <VODView vKey={v} onlySpeech />
 }

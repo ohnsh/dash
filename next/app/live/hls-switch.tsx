@@ -1,13 +1,13 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import type { ComponentPropsWithoutRef } from 'react'
+import type { HTMLAttributes } from 'react'
 import type { Path } from './dashd'
 import css from './hls-switch.module.css'
 import HlsVideo from './hls-video'
-import { pathMap, type StreamKey, isValidStream, cls } from './util'
+import { cls, isValidStream, pathMap, type StreamKey } from './util'
 
-const defaultItems = [{ name: 'desk' }, { name: 'wuuk' }, { name: 'wyze1' }]
+const defaultItems = [{ name: 'wuuk' }, { name: 'wyze1' }, { name: 'wyze2' }]
 
 export default function HlsSwitch({
   items = defaultItems,
@@ -15,7 +15,7 @@ export default function HlsSwitch({
   ...divProps
 }: {
   items?: Path[]
-} & ComponentPropsWithoutRef<'div'>) {
+} & HTMLAttributes<HTMLDivElement>) {
   const searchParams = useSearchParams()
   let stream = searchParams.get('stream')
 
