@@ -1,13 +1,9 @@
 import { getSpeechTotal } from '@dash/vod/util'
 import { desc, gte } from 'drizzle-orm'
-import { revalidatePath } from 'next/cache'
-import { Suspense } from 'react'
-import { SensorChartPromise } from '@/components/sensor-chart'
 import VODView from '@/components/vod-view'
 import { type DashVideo, MIN_CONFIDENCE } from '@/lib/dash-video'
-import { getSensorData } from '@/lib/sensor'
 import { db, invs } from '@/lib/turso'
-import css from './charts.module.css'
+import ChartDemo from './chart-demo'
 
 // minimum speech duration for inventory to be included
 const MIN_SPEECH_INV_S = 10
@@ -38,56 +34,10 @@ export default async function Home({ searchParams }: PageProps<'/'>) {
 
   if (!v) {
     return (
-      <div className={css.container}>
-        <div className={css.headerBar}>
-          <h2>Recharts Demo 📡</h2>
-          <button
-            type="button"
-            onClick={async () => {
-              'use server'
-              revalidatePath('/')
-            }}
-          >
-            Revalidate
-          </button>
-        </div>
-        <p>
-          Using live data from my apartment (
-          <a
-            href="https://github.com/ohnsh/dash/blob/main/dashd/src/index.ts"
-            target="_blank"
-            rel="noopener"
-          >
-            server source
-          </a>
-          ).
-        </p>
-        <section>
-          <Suspense fallback={`Loading chart...`}>
-            <SensorChartPromise
-              promise={getSensorData('encore_main')}
-              title="Main HomePod"
-            />
-          </Suspense>
-          <Suspense fallback={`Loading chart...`}>
-            <SensorChartPromise
-              promise={getSensorData('encore_bedroom')}
-              title="Bedroom HomePod"
-            />
-          </Suspense>
-        </section>
-        <h2>Clips with Speech</h2>
-        <p>
-          <a
-            href="https://days.ohn.sh/2026/08/dash-vad/"
-            target="_blank"
-            rel="noopener"
-          >
-            Detected with Silero VAD.
-          </a>
-        </p>
+      <>
+        <ChartDemo />
         <VODView rows={rows} vKey={v} filter={filter} headless />
-      </div>
+      </>
     )
   }
 
