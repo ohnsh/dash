@@ -7,6 +7,7 @@ import {
   fetchInventory,
   invPathToData,
   MIN_CONFIDENCE,
+  fromKey,
 } from '@/lib/dash-video'
 import { getInventories } from '@/lib/query'
 import type { InventoryRecord } from '@/lib/turso'
@@ -72,26 +73,25 @@ export default async function VODView({
   const fullKey = v && keyToFullKey(v, date)
   const src = fullKey && keyToSrc(fullKey)
 
-  // TODO: fix this, it freezes the app frequently
-  //
-  // VODPlayer will get a promise that resolves to the currently playing DashVideo object.
-  // This is pretty fragile; we should probably fetch the exact inventory to which the
-  // video belongs, relying on Next.js fetch de-duplication to use the same network
-  // request as the corresponding ThumbStrip
-  let videoPromise: Promise<DashVideo> | undefined
+  let videoPromise: Promise<DashVideo | undefined> | undefined
 
   if (fullKey) {
-    videoPromise = new Promise((resolve, reject) => {
-      setTimeout(reject, 3000)
-      inventories.forEach((inv) => {
-        inv.videosPromise.then((vids) => {
-          const currentVid = vids.find(({ key }) => key === fullKey)
-          if (currentVid) {
-            resolve(currentVid)
-          }
-        })
-      })
-    })
+    // videoPromise = new Promise((resolve, reject) => {
+    //   setTimeout(reject, 3000)
+    //   inventories.forEach((inv) => {
+    //     inv.videosPromise.then((vids) => {
+    //       const currentVid = vids.find(({ key }) => key === fullKey)
+    //       if (currentVid) {
+    //         resolve(currentVid)
+    //       }
+    //     })
+    //   })
+    // })
+
+    // fix a severe bug by fetching the video directly, relying on next.js fetch
+    // de-duplication to only create one network request (when the underlying
+    // inventory.json is already fetched for the thumbnail strip)
+    videoPromise = fromKey(fullKey)
   }
 
   return (

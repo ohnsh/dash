@@ -1,5 +1,5 @@
 import { type VODVideo, vodVideoSchema } from '@dash/vod/schema'
-import { BUCKET_URL, timestampFromFilename } from './vod-new'
+import { BUCKET_URL, tsFromFilename } from './vod-new'
 
 export const MIN_CONFIDENCE = 0.85
 
@@ -13,17 +13,21 @@ const wyzeTimestamp = (date: string, filename: string) => {
   }
 }
 
-export function toDashVideo(video: VODVideo, inventoryPath: string) {
+export function fromVODVideo(video: VODVideo, inventoryPath: string) {
   const pathData = invPathToData(inventoryPath)
   const key = `${pathData.keyPath}/${video.name}`
   const src = `${pathData.baseURL}/${video.name}`
   const thumb = `${pathData.baseURL}/${video.assets[0]}`
   const timestamp =
-    timestampFromFilename(video.name) ??
-    wyzeTimestamp(pathData.date, video.name)
+    tsFromFilename(video.name) ?? wyzeTimestamp(pathData.date, video.name)
 
   return { key, timestamp, src, thumb, ...pathData, ...video }
 }
+
+export type DashVideo = ReturnType<typeof fromVODVideo>
+
+export const keyToInvPath = (key: string) =>
+  key.replace(/[^/]+$/, 'inventory.json')
 
 export function invPathToData(inventoryPath: string) {
   const segments = inventoryPath.split('/')
@@ -36,8 +40,6 @@ export function invPathToData(inventoryPath: string) {
   return { date, cam, keyPath, baseURL }
 }
 
-export type DashVideo = ReturnType<typeof toDashVideo>
-
 export async function fetchInventory(
   inventoryPath: string,
 ): Promise<DashVideo[]> {
@@ -49,6 +51,11 @@ export async function fetchInventory(
     .then((items) =>
       items
         .map(vodVideoSchema.parse)
-        .map((vodVideo: VODVideo) => toDashVideo(vodVideo, inventoryPath)),
+        .map((vodVideo: VODVideo) => fromVODVideo(vodVideo, inventoryPath)),
     )
 }
+
+export const fromKey = async (key: string) =>
+  fetchInventory(keyToInvPath(key)).then((vids) =>
+    vids.find(({ key: testKey }) => testKey === key),
+  )

@@ -86,10 +86,9 @@ export function invPathToComponents(inventoryPath: string) {
 const filenameDateMatcher =
   /(?<=^|\D)(?<year>\d{4})[-_]?(?<month>\d{2})[-_]?(?<day>\d{2})[_T\W]{1,3}(?<hours>\d{2})[-_:]?(?<minutes>\d{2})[-_:]?(?<seconds>\d{2})?(?=\D|$)/
 
-export function timestampFromFilename(filename: string) {
+export function tsFromFilename(filename: string) {
   const match = filename.match(filenameDateMatcher)
   if (!match?.groups) {
-    // console.log(`getTimestamp could not match ${filename}`)
     return undefined
   }
   const { year, month, day, hours, minutes, seconds } = match.groups
