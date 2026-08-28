@@ -1,6 +1,6 @@
 import { getSpeechTotal } from '@dash/vod/util'
 import { Suspense } from 'react'
-import ThumbStrip from '@/components/thumbstrip'
+import ThumbStrip, { ThumbStripFallback } from '@/components/thumbstrip'
 import VODPlayer from '@/components/vod-player'
 import {
   type DashVideo,
@@ -11,27 +11,46 @@ import {
 import { getInventories } from '@/lib/query'
 import type { InventoryRecord } from '@/lib/turso'
 import { keyToFullKey, keyToSrc, tsToString } from '@/lib/vod-new'
+import { PageNav } from './page-nav'
 
 // minimum speech duration for inventory to be included
 const MIN_SPEECH_INV_S = 10
 // minimum speech duration for individual video to be included
 const MIN_SPEECH_S = 5
+const PAGE_SIZE = 5
 
 export default async function VODView({
-  vKey,
+  searchParams,
   date,
   onlySpeech = false,
   headless = false,
 }: {
-  vKey: string | undefined
+  // TODO: get type right
+  searchParams: Promise<{
+    v?: string
+    date?: string
+    page?: string
+    n?: string
+  }>
   date?: string
   onlySpeech?: boolean
   headless?: boolean
 }) {
+  const rsp = await searchParams
+  const { v } = rsp
+  date ??= rsp.date
+  const minSpeech = onlySpeech ? MIN_SPEECH_INV_S : undefined
+
+  const page = Number.isInteger(Number(rsp.page)) ? Number(rsp.page) : 1
+  const n = Number.isInteger(Number(rsp.n)) ? Number(rsp.n) : PAGE_SIZE
+
   const rows = await getInventories({
-    minSpeech: onlySpeech ? MIN_SPEECH_INV_S : undefined,
+    minSpeech,
     date,
   })
+
+  const showNav = !date && rows.length > n
+
   const speechFilter = (vids: DashVideo[]) =>
     vids.filter(
       (v) =>
@@ -39,14 +58,18 @@ export default async function VODView({
         getSpeechTotal(v.voiceSegments, { minConfidence: MIN_CONFIDENCE }) >=
           MIN_SPEECH_S,
     )
-  const inventories = rows.map((row) => ({
+
+  const offset = (page - 1) * n
+  const activeRows = date ? rows : rows.slice(offset, offset + n)
+
+  const inventories = activeRows.map((row) => ({
     ...row,
     videosPromise: fetchInventory(row.inventoryPath).then(
       onlySpeech ? speechFilter : (vids) => vids,
     ),
   }))
 
-  const fullKey = vKey && keyToFullKey(vKey, date)
+  const fullKey = v && keyToFullKey(v, date)
   const src = fullKey && keyToSrc(fullKey)
 
   // VODPlayer will get a promise that resolves to the currently playing DashVideo object.
@@ -79,19 +102,23 @@ export default async function VODView({
       ) : (
         !headless && <VODPlayer />
       )}
-      <div>
-        {inventories.map((inv) => (
-          <Suspense key={inv.inventoryPath} fallback={`Loading ...`}>
-            <ThumbStrip
-              // including the record is a hack to preserve client-side filtering.
-              record={inv}
-              videosPromise={inv.videosPromise}
-              title={getTitle(inv)}
-              tail
-            />
-          </Suspense>
-        ))}
-      </div>
+      <section>
+        {showNav && <PageNav />}
+        <div>
+          {inventories.map((inv) => (
+            <Suspense key={inv.inventoryPath} fallback={<ThumbStripFallback />}>
+              <ThumbStrip
+                // including the record is a hack to preserve client-side filtering.
+                record={inv}
+                videosPromise={inv.videosPromise}
+                title={getTitle(inv)}
+                tail
+              />
+            </Suspense>
+          ))}
+        </div>
+        {showNav && inventories.length > 2 && <PageNav />}
+      </section>
     </article>
   )
 }

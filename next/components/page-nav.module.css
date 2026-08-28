@@ -1,0 +1,36 @@
+.container {
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  padding-inline: .5rem;
+  gap: .3rem;
+
+  span {
+    margin-inline-end: .5rem;
+  }
+
+  &:first-of-type {
+    margin-bottom: -2rem;
+  }
+
+  &:last-of-type {
+    margin-top: .5rem;
+  }
+
+  button {
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    border: solid 1px;
+    color: hsl(from var(--foreground) h s l / .8);
+    padding: .2rem 1rem;
+    justify-self: center;
+
+    &:disabled {
+      color: hsl(from var(--foreground) h s l / .4);
+    }
+
+    &:hover:not(:disabled) {
+      color: var(--foreground);
+    }
+  }
+}

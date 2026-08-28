@@ -2,7 +2,7 @@ import { and, desc, eq, gte } from 'drizzle-orm'
 import { cacheLife } from 'next/cache'
 import { db, invs } from './turso'
 
-const NUM_INVS = 10
+const NUM_INVS = 200
 
 export async function getInventories({
   minSpeech,
@@ -24,6 +24,6 @@ export async function getInventories({
         date ? eq(invs.date, date) : undefined,
       ),
     )
-    .limit(NUM_INVS)
     .orderBy(desc(invs.date))
+    .limit(NUM_INVS)
 }

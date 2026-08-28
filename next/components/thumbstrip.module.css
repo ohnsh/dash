@@ -43,3 +43,7 @@
     }
   }
 }
+
+.fallback {
+  margin-block: 1rem;
+}

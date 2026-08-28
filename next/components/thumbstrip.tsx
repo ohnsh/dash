@@ -4,7 +4,7 @@ import { getSpeechTotal } from '@dash/vod/util'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { use, useEffect, useRef } from 'react'
+import { ComponentProps, HTMLAttributes, use, useEffect, useRef } from 'react'
 import { type DashVideo, MIN_CONFIDENCE } from '@/lib/dash-video'
 import type { InventoryRecord } from '@/lib/turso'
 import {
@@ -91,6 +91,25 @@ export function DashThumb({ video }: { video: DashVideo }) {
         </span>
       )}
     </Link>
+  )
+}
+
+export function ThumbStripFallback(props: ComponentProps<'article'>) {
+  return (
+    <article className={css.fallback} {...props}>
+      <div className="animate-pulse" aria-hidden="true">
+        <div className="flex gap-4 my-10 overflow-x-auto">
+          {Array(5)
+            .fill(0)
+            .map((_, i) => (
+              <div
+                key={`skel-${i}`}
+                className="w-[180px] aspect-video bg-gray-200 dark:bg-gray-800 rounded flex-none"
+              ></div>
+            ))}
+        </div>
+      </div>
+    </article>
   )
 }
 

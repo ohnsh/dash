@@ -8,12 +8,10 @@ export default async function Vod({
   searchParams,
 }: PageProps<'/[date]'>) {
   const { date } = await params
-  let { v } = await searchParams
-  if (Array.isArray(v)) v = v[0]
 
   if (!validateDate(date)) {
     notFound()
   }
 
-  return <VODView vKey={v} date={date} />
+  return <VODView searchParams={searchParams} date={date} />
 }
