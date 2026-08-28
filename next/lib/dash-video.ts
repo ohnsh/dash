@@ -41,7 +41,10 @@ export type DashVideo = ReturnType<typeof toDashVideo>
 export async function fetchInventory(
   inventoryPath: string,
 ): Promise<DashVideo[]> {
-  return fetch(new URL(inventoryPath, BUCKET_URL))
+  // if we pass the URL object, it might prevent fetch de-duplication
+  // the string will pass a strict equality test
+  const url = new URL(inventoryPath, BUCKET_URL).toString()
+  return fetch(url)
     .then((r) => r.json())
     .then((items) =>
       items

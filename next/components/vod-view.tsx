@@ -72,6 +72,8 @@ export default async function VODView({
   const fullKey = v && keyToFullKey(v, date)
   const src = fullKey && keyToSrc(fullKey)
 
+  // TODO: fix this, it freezes the app frequently
+  //
   // VODPlayer will get a promise that resolves to the currently playing DashVideo object.
   // This is pretty fragile; we should probably fetch the exact inventory to which the
   // video belongs, relying on Next.js fetch de-duplication to use the same network
@@ -79,16 +81,15 @@ export default async function VODView({
   let videoPromise: Promise<DashVideo> | undefined
 
   if (fullKey) {
-    let resolveVideo: (value: DashVideo) => void
-    videoPromise = new Promise((resolve) => {
-      resolveVideo = resolve
-    })
-    inventories.forEach((inv) => {
-      inv.videosPromise.then((vids) => {
-        const currentVid = vids.find(({ key }) => key === fullKey)
-        if (currentVid) {
-          resolveVideo(currentVid)
-        }
+    videoPromise = new Promise((resolve, reject) => {
+      setTimeout(reject, 3000)
+      inventories.forEach((inv) => {
+        inv.videosPromise.then((vids) => {
+          const currentVid = vids.find(({ key }) => key === fullKey)
+          if (currentVid) {
+            resolve(currentVid)
+          }
+        })
       })
     })
   }
@@ -97,7 +98,10 @@ export default async function VODView({
     <article className="flex flex-col">
       {fullKey ? (
         <Suspense fallback={<VODPlayer src={src} />}>
-          <VODPlayer videoPromise={videoPromise} />
+          <VODPlayer
+            videoPromise={videoPromise?.catch(() => undefined)}
+            src={src}
+          />
         </Suspense>
       ) : (
         !headless && <VODPlayer />

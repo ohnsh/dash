@@ -4,7 +4,7 @@ import { getSpeechTotal } from '@dash/vod/util'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { ComponentProps, HTMLAttributes, use, useEffect, useRef } from 'react'
+import { type ComponentProps, use, useEffect, useRef } from 'react'
 import { type DashVideo, MIN_CONFIDENCE } from '@/lib/dash-video'
 import type { InventoryRecord } from '@/lib/turso'
 import {
