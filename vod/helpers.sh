@@ -4,6 +4,18 @@ ONE_MB=$((1024 * 1024))
 MIN_MB=${MIN_MB:-3}
 MIN_VID_SIZE=${MIN_VID_SIZE:-$((MIN_MB * ONE_MB))}
 
+link_n_sync() {
+  [ -d "$1" ] || exit 1
+  local bn dn
+  dn=$(dirname "$1")
+  bn=$(basename "$1")
+
+  video.sh link "$1" && (
+    cd "$dn/${bn}_vod" || exit
+    video.sh vod . && cd .. && rm -r "${bn}_vod"
+  )
+}
+
 get_size() {
   local mp4=$1
   [[ -f $mp4 ]] || return 1
@@ -50,6 +62,9 @@ shift
 case "$cmd" in
 clean)
   clean "$@"
+  ;;
+link-n-sync)
+  link_n_sync "$@"
   ;;
 *)
   echo "Invalid subcommand $cmd" >&2

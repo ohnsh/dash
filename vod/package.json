@@ -21,7 +21,6 @@
     }
   },
   "bin": {
-    "mkinventory": "./index.ts",
     "video.sh": "./video.sh",
     "video.ts": "./videots_wrapper.sh",
     "rclone_v": "./rclone_v.sh"
