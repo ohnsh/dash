@@ -1,0 +1,2 @@
+- Analytics: https://docs.umami.is/docs/add-a-website
+- A11y: https://www.w3.org/WAI/ARIA/apg/patterns/feed/
