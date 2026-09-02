@@ -5,14 +5,15 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { type ComponentProps, use, useEffect, useRef } from 'react'
-import { type DashVideo, MIN_CONFIDENCE } from '@/lib/dash-video'
+import type { DashVideo } from '@/lib/dash-video'
 import type { InventoryRecord } from '@/lib/turso'
 import {
   clientParamsToKey,
   dateInPathname,
   keyToShortKey,
+  MIN_CONFIDENCE,
   tsToString,
-} from '@/lib/vod-new'
+} from '@/lib/vod-util'
 import { useInventory } from './inventory-provider'
 import css from './thumbstrip.module.css'
 

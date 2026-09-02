@@ -22,10 +22,10 @@ export default async function Home({ searchParams }: PageProps<'/'>) {
     return (
       <>
         <ChartDemo />
-        <VODView searchParams={searchParams} onlySpeech headless />
+        <VODView searchParams={searchParams} onlyQuad headless />
       </>
     )
   }
 
-  return <VODView searchParams={searchParams} onlySpeech />
+  return <VODView searchParams={searchParams} onlyQuad />
 }

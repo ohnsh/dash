@@ -3,11 +3,9 @@
 import type { VoiceResult } from '@dash/vod/schema'
 import { getSpeechTotal } from '@dash/vod/util'
 import { use, useEffect, useRef, useState } from 'react'
-import { type DashVideo, MIN_CONFIDENCE } from '@/lib/dash-video'
-import { tsToString } from '@/lib/vod-new'
+import type { DashVideo } from '@/lib/dash-video'
+import { MIN_CONFIDENCE, tsToString } from '@/lib/vod-util'
 import CropOverlay from './crop-overlay'
-// src from pathname and searchparams
-// import { clientParamsToSrc } from '@/lib/vod-new'
 import css from './vod-player.module.css'
 
 export default function VODPlayer({

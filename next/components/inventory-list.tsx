@@ -2,8 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { tsToString } from '@/lib/vod-new'
-// import { r2PathToRoute } from '@/lib/vod'
+import { tsToString } from '@/lib/vod-util'
 import { useInventory } from './inventory-provider'
 import { useSidebarState } from './sidebar-state-provider'
 

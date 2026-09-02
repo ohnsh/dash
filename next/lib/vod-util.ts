@@ -1,4 +1,5 @@
 export const BUCKET_URL = process.env.BUCKET_URL || 'https://vod.ohn.sh'
+export const MIN_CONFIDENCE = 0.85
 
 // full keys begin with the date in year-mo/day format
 const fullKeyPattern = /^\d{4}-\d{2}[/]\d{2}[/]/

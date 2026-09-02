@@ -1,7 +1,5 @@
-import { type VODVideo, vodVideoSchema } from '@dash/vod/schema'
-import { BUCKET_URL, tsFromFilename } from './vod-new'
-
-export const MIN_CONFIDENCE = 0.85
+import type { VODVideo } from '@dash/vod/schema'
+import { BUCKET_URL, tsFromFilename } from './vod-util'
 
 const wyzeTimestamp = (date: string, filename: string) => {
   const hours = filename.slice(0, 2)
@@ -39,23 +37,3 @@ export function invPathToData(inventoryPath: string) {
 
   return { date, cam, keyPath, baseURL }
 }
-
-export async function fetchInventory(
-  inventoryPath: string,
-): Promise<DashVideo[]> {
-  // if we pass the URL object, it might prevent fetch de-duplication
-  // the string will pass a strict equality test
-  const url = new URL(inventoryPath, BUCKET_URL).toString()
-  return fetch(url)
-    .then((r) => r.json())
-    .then((items) =>
-      items
-        .map(vodVideoSchema.parse)
-        .map((vodVideo: VODVideo) => fromVODVideo(vodVideo, inventoryPath)),
-    )
-}
-
-export const fromKey = async (key: string) =>
-  fetchInventory(keyToInvPath(key)).then((vids) =>
-    vids.find(({ key: testKey }) => testKey === key),
-  )

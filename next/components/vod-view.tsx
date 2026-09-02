@@ -2,16 +2,16 @@ import { getSpeechTotal } from '@dash/vod/util'
 import { Suspense } from 'react'
 import ThumbStrip, { ThumbStripFallback } from '@/components/thumbstrip'
 import VODPlayer from '@/components/vod-player'
-import {
-  type DashVideo,
-  fetchInventory,
-  invPathToData,
-  MIN_CONFIDENCE,
-  fromKey,
-} from '@/lib/dash-video'
+import { type DashVideo, invPathToData } from '@/lib/dash-video'
 import { getInventories } from '@/lib/query'
+import { dashVideoFromKey, fetchInventory } from '@/lib/r2'
 import type { InventoryRecord } from '@/lib/turso'
-import { keyToFullKey, keyToSrc, tsToString } from '@/lib/vod-new'
+import {
+  keyToFullKey,
+  keyToSrc,
+  MIN_CONFIDENCE,
+  tsToString,
+} from '@/lib/vod-util'
 import { PageNav } from './page-nav'
 
 // minimum speech duration for inventory to be included
@@ -24,6 +24,7 @@ export default async function VODView({
   searchParams,
   date,
   onlySpeech = false,
+  onlyQuad = false,
   headless = false,
 }: {
   // TODO: get type right
@@ -35,6 +36,7 @@ export default async function VODView({
   }>
   date?: string
   onlySpeech?: boolean
+  onlyQuad?: boolean
   headless?: boolean
 }) {
   const rsp = await searchParams
@@ -48,7 +50,11 @@ export default async function VODView({
   const rows = await getInventories({
     minSpeech,
     date,
-  })
+  }).then((rows) =>
+    onlyQuad
+      ? rows.filter((row) => row.inventoryPath.includes('/quad/'))
+      : rows,
+  )
 
   const showNav = !date && rows.length > n
 
@@ -73,26 +79,10 @@ export default async function VODView({
   const fullKey = v && keyToFullKey(v, date)
   const src = fullKey && keyToSrc(fullKey)
 
-  let videoPromise: Promise<DashVideo | undefined> | undefined
-
-  if (fullKey) {
-    // videoPromise = new Promise((resolve, reject) => {
-    //   setTimeout(reject, 3000)
-    //   inventories.forEach((inv) => {
-    //     inv.videosPromise.then((vids) => {
-    //       const currentVid = vids.find(({ key }) => key === fullKey)
-    //       if (currentVid) {
-    //         resolve(currentVid)
-    //       }
-    //     })
-    //   })
-    // })
-
-    // fix a severe bug by fetching the video directly, relying on next.js fetch
-    // de-duplication to only create one network request (when the underlying
-    // inventory.json is already fetched for the thumbnail strip)
-    videoPromise = fromKey(fullKey)
-  }
+  // fetch the video directly, relying on next.js fetch de-duplication to only create
+  // one network request (when the underlying inventory.json is already fetched for the
+  // thumbnail strip)
+  const videoPromise = fullKey ? dashVideoFromKey(fullKey) : undefined
 
   return (
     <article className="flex flex-col">

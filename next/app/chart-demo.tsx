@@ -46,12 +46,13 @@ export default async function ChartDemo() {
       </section>
       <h2>Clips with Speech</h2>
       <p>
+        ★ Denotes a clip with speech,{' '}
         <a
           href="https://days.ohn.sh/2026/08/dash-vad/"
           target="_blank"
           rel="noopener"
         >
-          Detected with Silero VAD.
+          detected by Silero VAD.
         </a>
       </p>
     </div>
