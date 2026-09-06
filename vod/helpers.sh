@@ -5,15 +5,21 @@ MIN_MB=${MIN_MB:-3}
 MIN_VID_SIZE=${MIN_VID_SIZE:-$((MIN_MB * ONE_MB))}
 
 link_n_sync() {
-  [ -d "$1" ] || exit 1
-  local bn dn
-  dn=$(dirname "$1")
-  bn=$(basename "$1")
+  local dir bn dn
+  for dir; do
+    dir=${dir%/}
+    [ -d "$dir" ] || {
+      echo "$dir not a directory; skipping" >&2
+      continue
+    }
+    dn=$(dirname "$dir")
+    bn=$(basename "$dir")
 
-  video.sh link "$1" && (
-    cd "$dn/${bn}_vod" || exit
-    video.sh vod . && cd .. && rm -r "${bn}_vod"
-  )
+    video.sh link "$dir" && (
+      cd "$dn/${bn}_vod" || exit
+      video.sh vod . && cd .. && rm -r "${bn}_vod"
+    )
+  done
 }
 
 get_size() {
