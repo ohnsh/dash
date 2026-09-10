@@ -1,4 +1,0 @@
-[language-server.biome]
-command = "bunx"
-args = ["biome", "lsp-proxy"]
-display-messages = true
