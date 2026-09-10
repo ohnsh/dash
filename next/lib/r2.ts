@@ -3,9 +3,7 @@ import { cacheLife } from 'next/cache'
 import { type DashVideo, fromVODVideo, keyToInvPath } from './dash-video'
 import { BUCKET_URL } from './vod-util'
 
-export async function fetchInventory(
-  inventoryPath: string,
-): Promise<DashVideo[]> {
+export async function fetchInventory(inventoryPath: string): Promise<DashVideo[]> {
   'use cache'
   // this can be much longer for days other than the current day.
   // need to figure that out.
@@ -15,10 +13,16 @@ export async function fetchInventory(
   // the string will pass a strict equality test
   const url = new URL(inventoryPath, BUCKET_URL).toString()
   return fetch(url)
-    .then((r) => r.json())
+    .then<VODVideo[]>((res) => {
+      if (!res.ok) {
+        console.error(`fetchInventory: ${res.status} ${res.statusText} (${url})`)
+        return []
+      }
+      return res.json()
+    })
     .then((items) =>
       items
-        .map(vodVideoSchema.parse)
+        .map((raw) => vodVideoSchema.parse(raw))
         .map((vodVideo: VODVideo) => fromVODVideo(vodVideo, inventoryPath)),
     )
 }
