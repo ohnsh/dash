@@ -195,11 +195,15 @@ process_camdir() {
       continue
     fi
 
+    [[ -n $REMUX_ONLY ]] && continue
+
     if ! mkassets "$bn"; then
       log_notify "Error creating assets for $bn... Continuing."
       toss "$bn" assets
     fi
   done
+
+  [[ -n $REMUX_ONLY ]] && return
 
   # do this once per run instead of per file
   # index_inventory is ignored by the db after the first insert
