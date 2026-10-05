@@ -6,12 +6,7 @@ import { type DashVideo, invPathToData } from '@/lib/dash-video'
 import { getInventories } from '@/lib/query'
 import { dashVideoFromKey, fetchInventory } from '@/lib/r2'
 import type { InventoryRecord } from '@/lib/turso'
-import {
-  keyToFullKey,
-  keyToSrc,
-  MIN_CONFIDENCE,
-  tsToString,
-} from '@/lib/vod-util'
+import { keyToFullKey, keyToSrc, MIN_CONFIDENCE, tsToString } from '@/lib/vod-util'
 import { PageNav } from './page-nav'
 
 // minimum speech duration for inventory to be included
@@ -51,9 +46,7 @@ export default async function VODView({
     minSpeech,
     date,
   }).then((rows) =>
-    onlyQuad
-      ? rows.filter((row) => row.inventoryPath.includes('/quad/'))
-      : rows,
+    onlyQuad ? rows.filter((row) => row.inventoryPath.includes('/quad/')) : rows,
   )
 
   const showNav = !date && rows.length > n
@@ -66,8 +59,15 @@ export default async function VODView({
           MIN_SPEECH_S,
     )
 
+  const bedToLast = (a: InventoryRecord, b: InventoryRecord) =>
+    a.inventoryPath.includes('wyze_bed') === b.inventoryPath.includes('wyze_bed')
+      ? 0
+      : a.inventoryPath.includes('wyze_bed')
+        ? 1
+        : -1
+
   const offset = (page - 1) * n
-  const activeRows = date ? rows : rows.slice(offset, offset + n)
+  const activeRows = date ? rows.sort(bedToLast) : rows.slice(offset, offset + n)
 
   const inventories = activeRows.map((row) => ({
     ...row,
@@ -88,10 +88,7 @@ export default async function VODView({
     <article className="flex flex-col">
       {fullKey ? (
         <Suspense fallback={<VODPlayer src={src} />}>
-          <VODPlayer
-            videoPromise={videoPromise?.catch(() => undefined)}
-            src={src}
-          />
+          <VODPlayer videoPromise={videoPromise?.catch(() => undefined)} src={src} />
         </Suspense>
       ) : (
         !headless && <VODPlayer />
