@@ -32,15 +32,15 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/node": "^26.5.1",
-    "drizzle-kit": "^1.0.0-rc.5-ab785fc",
-    "oxfmt": "^0.67.0"
+    "@types/node": "^26.6.4",
+    "drizzle-kit": "^1.0.0-rc.5-5935859",
+    "oxfmt": "^0.71.0"
   },
   "dependencies": {
-    "@libsql/client": "^0.17.4",
-    "drizzle-orm": "^1.0.0-rc.5-ab785fc",
-    "temporal-polyfill": "^1.0.4",
     "@dash/voice-detect": "workspace:*",
-    "zod": "^4.6.1"
+    "@libsql/client": "^0.18.0",
+    "drizzle-orm": "^1.0.0-rc.5-5935859",
+    "temporal-polyfill": "^1.0.5",
+    "zod": "^4.6.5"
   }
 }
