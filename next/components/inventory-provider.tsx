@@ -36,11 +36,11 @@ export default function InventoryProvider({
   const [inventories, setInventories] = useState<InventoryRecord[] | undefined>(
     initialInventories,
   )
-  const [isFiltered, setIsFiltered] = useState(true)
+  // change 10/4: no filter by default
+  const [isFiltered, setIsFiltered] = useState(false)
 
   const inventoryMap = useMemo(() => {
-    const filtered =
-      isFiltered && inventories ? filter(inventories) : inventories
+    const filtered = isFiltered && inventories ? filter(inventories) : inventories
     return filtered?.reduce<InventoryMap>((prev, current) => {
       const day = prev[current.date] ?? []
       day.push(current.inventoryPath)
@@ -97,9 +97,7 @@ export function useInventory() {
   const context = useContext(InventoryContext)
 
   if (!context) {
-    throw new Error(
-      'useInventory must be called from a descendant of InventoryProvider',
-    )
+    throw new Error('useInventory must be called from a descendant of InventoryProvider')
   }
 
   return context
