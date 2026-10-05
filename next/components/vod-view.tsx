@@ -59,12 +59,24 @@ export default async function VODView({
           MIN_SPEECH_S,
     )
 
-  const bedToLast = (a: InventoryRecord, b: InventoryRecord) =>
-    a.inventoryPath.includes('wyze_bed') === b.inventoryPath.includes('wyze_bed')
-      ? 0
-      : a.inventoryPath.includes('wyze_bed')
-        ? 1
-        : -1
+  // I should make a reference array that specifies order.
+  // This works for now.
+  const bedToLast = (a: InventoryRecord, b: InventoryRecord) => {
+    const has = (i: InventoryRecord) => ({
+      wyze_bed: i.inventoryPath.includes('/wyze_bed/'),
+      wyze2: i.inventoryPath.includes('/wyze2/'),
+      quad: i.inventoryPath.includes('/quad/'),
+    })
+    const aHas = has(a)
+    const bHas = has(b)
+
+    if (aHas.quad && !bHas.quad) return -1
+    if (bHas.quad && !aHas.quad) return 1
+    if (aHas.wyze_bed === bHas.wyze_bed && aHas.wyze2 === bHas.wyze2) return 0
+    if (aHas.wyze2) return 1
+    if (bHas.wyze2) return -1
+    return aHas.wyze_bed ? 1 : -1
+  }
 
   const offset = (page - 1) * n
   const activeRows = date ? rows.sort(bedToLast) : rows.slice(offset, offset + n)
