@@ -6,6 +6,7 @@ import Header from './header'
 import InventoryContainer from './inventory-container'
 import css from './layout.module.css'
 import Sidebar, { SidebarBackdrop } from './sidebar'
+import { Analytics } from '@vercel/analytics/next'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -43,6 +44,7 @@ export default function RootLayout({
             </div>
           </SidebarStateProvider>
         </InventoryContainer>
+        <Analytics />
       </body>
     </html>
   )
