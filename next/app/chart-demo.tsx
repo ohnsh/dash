@@ -30,6 +30,14 @@ export default async function ChartDemo() {
         </a>
         ).
       </p>
+      <p className="text-sm italic">
+        UPDATE: Ouch, a{' '}
+        <a href="https://github.com/mpatfield/homebridge-dummy/issues/483">
+          tvOS/HomePod 27 bug
+        </a>{' '}
+        prevents temperature updates from working. It sounds like a fix should land in
+        27.2.
+      </p>
       <section>
         <Suspense fallback={`Loading chart...`}>
           <SensorChartPromise
@@ -47,11 +55,7 @@ export default async function ChartDemo() {
       <h2>Clips with Speech</h2>
       <p>
         ★ Denotes a clip with speech,{' '}
-        <a
-          href="https://days.ohn.sh/2026/08/dash-vad/"
-          target="_blank"
-          rel="noopener"
-        >
+        <a href="https://days.ohn.sh/2026/08/dash-vad/" target="_blank" rel="noopener">
           detected by Silero VAD.
         </a>
       </p>
