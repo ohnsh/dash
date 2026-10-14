@@ -1,4 +1,4 @@
-export const BUCKET_URL = process.env.BUCKET_URL || 'https://vod.ohn.sh'
+export const BUCKET_URL = process.env.BUCKET_URL || 'https://vod-media.ohn.sh'
 export const MIN_CONFIDENCE = 0.85
 
 // full keys begin with the date in year-mo/day format
@@ -46,8 +46,7 @@ export async function paramsToKey(
 export const paramsToSrc = (...args: Parameters<typeof paramsToKey>) =>
   paramsToKey(...args).then((key) => key && `${BUCKET_URL}/${key}`)
 
-export const dateInPathname = (pathname: string) =>
-  /^[/]\d{4}-\d{2}-\d{2}/.test(pathname)
+export const dateInPathname = (pathname: string) => /^[/]\d{4}-\d{2}-\d{2}/.test(pathname)
 
 // given URL info on the client, get the full key of the current video
 export function clientParamsToKey(v: string, pathname?: string) {
@@ -60,9 +59,7 @@ export function clientParamsToKey(v: string, pathname?: string) {
   const [, date] = pathname.split('/')
   return keyToFullKey(v, date)
 }
-export const clientParamsToSrc = (
-  ...args: Parameters<typeof clientParamsToKey>
-) => {
+export const clientParamsToSrc = (...args: Parameters<typeof clientParamsToKey>) => {
   const key = clientParamsToKey(...args)
   return key && `${BUCKET_URL}/${key}`
 }
