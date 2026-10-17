@@ -1,6 +1,9 @@
 import { SVGProps } from 'react'
 
-export default function VodLogo({ className, ...props }: SVGProps) {
+export default function VodLogo({
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<'svg'>) {
   return (
     <svg
       className={`vod-logo ${className ?? ''}`}
