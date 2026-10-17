@@ -1,0 +1,63 @@
+import { SVGProps } from 'react'
+
+export default function VodLogo({ className, ...props }: SVGProps) {
+  return (
+    <svg
+      className={`vod-logo ${className ?? ''}`}
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="192 168 744 176"
+      width="140"
+      aria-hidden="true"
+      focusable="false"
+      {...props}
+    >
+      <defs>
+        <clipPath id="vod-logo-bounds">
+          <path d="M0 0h512v512H0z" />
+        </clipPath>
+      </defs>
+      <g transform="translate(192 168) scale(.34375)" clipPath="url(#vod-logo-bounds)">
+        <g transform="translate(54.3 -124.625) scale(.7 2.1875)">
+          <path
+            fill="#f2cb55"
+            d="M42 0h65C151 67 174 92 215 92H800v44H215C137 136 101 84 42 0Z"
+          />
+          <path
+            fill="#e98439"
+            d="M0 0h42C101 84 137 136 215 136H800v40H215C117 176 59 111 0 24Z"
+          />
+          <path
+            fill="#dc553b"
+            d="M0 24C59 111 117 176 215 176H800v40H215C115 216 44 160 0 90Z"
+          />
+          <path
+            fill="#a3425b"
+            d="M0 90C44 160 115 216 215 216H800v40H215C119 256 45 213 0 157Z"
+          />
+        </g>
+      </g>
+      <g
+        transform="translate(124.515625 76.625) scale(.70068359375)"
+        fill="currentColor"
+        fillRule="evenodd"
+      >
+        <path d="M416 168h49l37 125 37-125h49l-62 176h-48z" />
+        <path d="M655 168h51c33 0 52 20 52 52v72c0 32-19 52-52 52h-51c-33 0-52-20-52-52v-72c0-32 19-52 52-52zm7 42c-10 0-15 6-15 17v58c0 11 5 17 15 17h37c10 0 15-6 15-17v-58c0-11-5-17-15-17z" />
+        <path d="M784 168h80c45 0 72 28 72 72v32c0 44-27 72-72 72h-80zm44 42v92h33c20 0 31-12 31-33v-26c0-21-11-33-31-33z" />
+      </g>
+      <style>{`
+        .vod-logo {
+          /*display: block;*/
+          height: auto;
+          color: #302c26;
+        }
+
+        @media (prefers-color-scheme: dark) {
+          .vod-logo {
+            color: #f3ead7;
+          }
+        }
+    `}</style>
+    </svg>
+  )
+}

@@ -1,5 +1,6 @@
 // import VODView from '@/components/vod-view'
 import vodLogo from '@/public/vod-logo.svg'
+import VodLogo from './vod-logo'
 import Image from 'next/image'
 import ChartDemo from './chart-demo'
 
@@ -24,12 +25,13 @@ export default async function Home({ searchParams }: PageProps<'/'>) {
     <>
       <section className="mb-8">
         <h2 className="text-2xl mb-2">
-          <Image
+          {/*<Image
             src={vodLogo}
             alt="VOD"
             width={130}
             className="inline align-top -mr-2.5"
-          />
+          />*/}
+          <VodLogo width={140} className="inline align-[-6px] -mr-2.5" />
           is Live ⬇🤓
         </h2>
         <iframe
