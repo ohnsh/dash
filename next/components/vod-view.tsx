@@ -46,7 +46,7 @@ export default async function VODView({
     minSpeech,
     date,
   }).then((rows) =>
-    onlyQuad ? rows.filter((row) => row.inventoryPath.includes('/quad/')) : rows,
+    onlyQuad ? rows.filter((row) => row.inventoryPath.includes('/quad')) : rows,
   )
 
   const showNav = !date && rows.length > n
@@ -65,7 +65,7 @@ export default async function VODView({
     const has = (i: InventoryRecord) => ({
       wyze_bed: i.inventoryPath.includes('/wyze_bed/'),
       wyze2: i.inventoryPath.includes('/wyze2/'),
-      quad: i.inventoryPath.includes('/quad/'),
+      quad: i.inventoryPath.includes('/quad'),
     })
     const aHas = has(a)
     const bHas = has(b)
