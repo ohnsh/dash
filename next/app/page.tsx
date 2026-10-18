@@ -23,7 +23,7 @@ export default async function Home({ searchParams }: PageProps<'/'>) {
 
   return (
     <>
-      <section className="mb-8">
+      <section className="mb-14">
         <h2 className="text-2xl mb-2">
           {/*<Image
             src={vodLogo}
@@ -32,7 +32,7 @@ export default async function Home({ searchParams }: PageProps<'/'>) {
             className="inline align-top -mr-2.5"
           />*/}
           <VodLogo width={140} className="inline align-[-6px] -mr-2.5" />
-          is Live ⬇🤓
+          is Live 📼🤓⬇
         </h2>
         <iframe
           src="https://vod.ohn.sh/embed"
